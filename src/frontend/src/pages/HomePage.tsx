@@ -69,151 +69,180 @@ export default function HomePage() {
 
   return (
     <div className="overflow-hidden">
-      {/* Hero Section */}
-      <section className="relative hero-pattern min-h-[85vh] flex items-center py-16">
-        {/* Decorative circles */}
-        <div className="absolute top-10 right-10 w-64 h-64 rounded-full bg-[oklch(var(--saffron)/0.08)] blur-3xl pointer-events-none" />
-        <div className="absolute bottom-10 left-10 w-48 h-48 rounded-full bg-[oklch(0.35_0.12_258/0.15)] blur-3xl pointer-events-none" />
+      {/* Hero Section — full-width background image with overlay */}
+      <section className="relative min-h-[90vh] flex flex-col justify-end overflow-hidden">
+        {/* Full-bleed background hostel image */}
+        <div className="absolute inset-0 z-0">
+          <img
+            src="/assets/generated/hostel-hero.dim_1200x600.jpg"
+            alt="Post Matric Minority Boys Hostel, Mohana"
+            className="w-full h-full object-cover object-center"
+          />
+          {/* Multi-layer overlay for depth and readability */}
+          <div className="absolute inset-0 bg-gradient-to-b from-[oklch(0.12_0.07_260/0.65)] via-[oklch(0.14_0.07_258/0.55)] to-[oklch(0.10_0.06_260/0.88)]" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[oklch(0.12_0.07_260/0.75)] via-transparent to-transparent" />
+          {/* Subtle radial glow behind text */}
+          <div className="absolute left-0 top-0 bottom-0 w-2/3 bg-gradient-to-r from-[oklch(0.15_0.08_260/0.6)] to-transparent pointer-events-none" />
+        </div>
 
-        <div className="container mx-auto px-4 relative z-10">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            {/* Left: Text */}
-            <div>
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-                className="flex items-center gap-3 mb-5"
-              >
-                <div className="gold-rule w-8" />
-                <span className="font-body text-xs tracking-[0.18em] uppercase text-[oklch(var(--saffron))] font-semibold">
-                  Government of Odisha Initiative
-                </span>
-              </motion.div>
+        {/* Decorative saffron glow orbs */}
+        <div className="absolute top-16 right-20 w-72 h-72 rounded-full bg-[oklch(var(--saffron)/0.07)] blur-3xl pointer-events-none z-[1]" />
+        <div className="absolute bottom-24 right-8 w-48 h-48 rounded-full bg-[oklch(0.35_0.12_258/0.2)] blur-2xl pointer-events-none z-[1]" />
 
-              <motion.h1
-                initial={{ opacity: 0, y: 28 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.65, delay: 0.1 }}
-                className="font-serif font-bold leading-[1.08] mb-3"
-              >
-                <span className="block text-white/90 text-3xl md:text-4xl lg:text-[2.6rem] tracking-tight">
-                  Post Matric
-                </span>
-                <span className="block text-[oklch(var(--saffron))] text-4xl md:text-5xl lg:text-6xl tracking-tight">
-                  Minority Boys
-                </span>
-                <span className="block text-white text-3xl md:text-4xl lg:text-[2.6rem] tracking-tight">
-                  Hostel, Mohana
-                </span>
-              </motion.h1>
-
-              {/* Gold ruled separator */}
-              <motion.div
-                initial={{ opacity: 0, scaleX: 0 }}
-                animate={{ opacity: 1, scaleX: 1 }}
-                transition={{ duration: 0.6, delay: 0.4 }}
-                style={{ transformOrigin: "left" }}
-                className="gold-rule w-24 mb-5"
-              />
-
-              <motion.p
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.5 }}
-                className="text-white/65 font-body text-base md:text-lg mb-8 max-w-lg leading-relaxed"
-              >
-                Empowering minority students through free accommodation, quality
-                education support, and scholarship assistance — building
-                brighter futures for Odisha.
-              </motion.p>
-
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.5 }}
-                className="flex flex-wrap gap-3"
-              >
-                <a
-                  href={settings?.admissionLink || "/admission"}
-                  target={settings?.admissionLink ? "_blank" : undefined}
-                  rel="noopener noreferrer"
-                >
-                  <Button className="bg-[oklch(var(--saffron))] text-[oklch(0.10_0.02_260)] hover:bg-[oklch(0.65_0.16_65)] font-body font-semibold px-6 shadow-saffron">
-                    <GraduationCap className="w-4 h-4 mr-2" />
-                    Apply for Admission
-                  </Button>
-                </a>
-                <a
-                  href="https://scholarship.odisha.gov.in/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <Button
-                    variant="outline"
-                    className="border-white/30 text-white hover:bg-white/10 font-body font-semibold px-6"
-                  >
-                    <Award className="w-4 h-4 mr-2" />
-                    Scholarship Portal
-                    <ExternalLink className="w-3 h-3 ml-1" />
-                  </Button>
-                </a>
-              </motion.div>
-            </div>
-
-            {/* Right: Hostel Image */}
+        {/* Content */}
+        <div className="relative z-10 container mx-auto px-4 py-20 pt-28">
+          <div className="max-w-3xl">
+            {/* Logos row */}
             <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.8, delay: 0.3 }}
-              className="relative"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="flex items-center gap-4 mb-8"
             >
-              <div className="relative rounded-2xl overflow-hidden border border-white/10 shadow-2xl">
+              <div className="flex items-center gap-3">
                 <img
-                  src="/assets/generated/hostel-hero.dim_1200x600.jpg"
-                  alt="Post Matric Minority Boys Hostel, Mohana"
-                  className="w-full object-cover aspect-video"
+                  src="/assets/generated/hostel-logo-transparent.dim_200x200.png"
+                  alt="PMMBH Mohana Emblem"
+                  className="w-16 h-16 md:w-20 md:h-20 object-contain drop-shadow-lg"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-[oklch(0.14_0.07_258/0.6)] to-transparent" />
-                <div className="absolute bottom-4 left-4 right-4">
-                  <p className="text-white/90 font-display font-semibold text-sm">
-                    Mohana, Gajapati District, Odisha
-                  </p>
-                  <div className="flex items-center gap-1 mt-1">
-                    <MapPin className="w-3.5 h-3.5 text-[oklch(var(--saffron))]" />
-                    <span className="text-white/60 text-xs font-body">
-                      Odisha — 761015
-                    </span>
-                  </div>
-                </div>
               </div>
+              <div className="h-12 w-px bg-white/20 hidden sm:block" />
+              <div className="hidden sm:flex flex-col gap-1.5">
+                <img
+                  src="/assets/generated/odisha-govt-logo-transparent.dim_200x200.png"
+                  alt="Odisha Government"
+                  className="w-8 h-8 object-contain"
+                />
+                <img
+                  src="/assets/generated/ministry-minority-affairs-logo-transparent.dim_200x200.png"
+                  alt="Ministry of Minority Affairs"
+                  className="w-8 h-8 object-contain"
+                />
+              </div>
+            </motion.div>
 
-              {/* Floating stats card */}
-              {superintendent && (
-                <motion.div
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.5, delay: 0.8 }}
-                  className="absolute -bottom-6 -right-4 md:right-4 bg-white rounded-xl p-3 shadow-xl border border-border max-w-[180px]"
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              className="flex items-center gap-3 mb-5"
+            >
+              <div className="gold-rule w-8" />
+              <span className="font-body text-xs tracking-[0.18em] uppercase text-[oklch(var(--saffron))] font-semibold">
+                Government of Odisha Initiative
+              </span>
+            </motion.div>
+
+            <motion.h1
+              initial={{ opacity: 0, y: 28 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.65, delay: 0.15 }}
+              className="font-serif font-bold leading-[1.06] mb-4"
+            >
+              <span className="block text-white/90 text-3xl md:text-4xl lg:text-5xl tracking-tight drop-shadow-sm">
+                Post Matric
+              </span>
+              <span
+                className="block text-[oklch(var(--saffron))] text-4xl md:text-5xl lg:text-6xl tracking-tight drop-shadow-md"
+                style={{ textShadow: "0 2px 20px oklch(0.72 0.18 58 / 0.4)" }}
+              >
+                Minority Boys
+              </span>
+              <span className="block text-white text-3xl md:text-4xl lg:text-5xl tracking-tight drop-shadow-sm">
+                Hostel, Mohana
+              </span>
+            </motion.h1>
+
+            {/* Gold ruled separator */}
+            <motion.div
+              initial={{ opacity: 0, scaleX: 0 }}
+              animate={{ opacity: 1, scaleX: 1 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+              style={{ transformOrigin: "left" }}
+              className="gold-rule w-28 mb-5"
+            />
+
+            <motion.p
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.5 }}
+              className="text-white/75 font-body text-base md:text-lg mb-8 max-w-xl leading-relaxed"
+            >
+              Empowering minority students through free accommodation, quality
+              education support, and scholarship assistance — building brighter
+              futures for Odisha.
+            </motion.p>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.6 }}
+              className="flex flex-wrap gap-3 mb-6"
+            >
+              <a
+                href={settings?.admissionLink || "/admission"}
+                target={settings?.admissionLink ? "_blank" : undefined}
+                rel="noopener noreferrer"
+              >
+                <Button className="bg-[oklch(var(--saffron))] text-[oklch(0.10_0.02_260)] hover:bg-[oklch(0.65_0.16_65)] font-body font-semibold px-6 shadow-lg shadow-[oklch(var(--saffron)/0.35)] text-sm">
+                  <GraduationCap className="w-4 h-4 mr-2" />
+                  Apply for Admission
+                </Button>
+              </a>
+              <a
+                href="https://scholarship.odisha.gov.in/"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Button
+                  variant="outline"
+                  className="border-white/35 text-white bg-white/8 hover:bg-white/18 backdrop-blur-sm font-body font-semibold px-6 text-sm"
                 >
-                  <div className="flex items-center gap-2">
-                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                      <Star className="w-5 h-5 text-primary" />
-                    </div>
-                    <div>
-                      <p className="text-xs font-display font-bold text-foreground leading-tight">
-                        {superintendent.name}
-                      </p>
-                      <p className="text-xs text-muted-foreground font-body leading-tight">
-                        Superintendent
-                      </p>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
+                  <Award className="w-4 h-4 mr-2" />
+                  Scholarship Portal
+                  <ExternalLink className="w-3 h-3 ml-1" />
+                </Button>
+              </a>
+            </motion.div>
+
+            {/* Location badge */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.6, delay: 0.75 }}
+              className="flex items-center gap-2"
+            >
+              <MapPin className="w-3.5 h-3.5 text-[oklch(var(--saffron))]" />
+              <span className="text-white/55 text-xs font-body tracking-wide">
+                Mohana, Gajapati District, Odisha — 761015
+              </span>
             </motion.div>
           </div>
         </div>
+
+        {/* Superintendent floating card — positioned bottom-right */}
+        {superintendent && (
+          <motion.div
+            initial={{ opacity: 0, x: 30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6, delay: 1.0 }}
+            className="absolute bottom-8 right-6 md:right-12 z-10 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4 max-w-[200px] shadow-2xl"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-[oklch(var(--saffron)/0.2)] border border-[oklch(var(--saffron)/0.5)] flex items-center justify-center flex-shrink-0">
+                <Star className="w-5 h-5 text-[oklch(var(--saffron))]" />
+              </div>
+              <div>
+                <p className="text-xs font-display font-bold text-white leading-tight">
+                  {superintendent.name}
+                </p>
+                <p className="text-[10px] text-white/60 font-body leading-tight mt-0.5">
+                  Hostel Superintendent
+                </p>
+              </div>
+            </div>
+          </motion.div>
+        )}
       </section>
 
       {/* Stats Bar */}

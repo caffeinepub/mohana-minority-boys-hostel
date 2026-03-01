@@ -34,11 +34,11 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-[3.75rem]">
           {/* Logo + Name */}
           <Link to="/" className="flex items-center gap-3 group">
-            <div className="w-9 h-9 rounded-full overflow-hidden border border-[oklch(var(--saffron)/0.5)] bg-white/8 flex items-center justify-center flex-shrink-0 transition-all duration-300 group-hover:border-[oklch(var(--saffron)/0.85)]">
+            <div className="w-11 h-11 rounded-full overflow-hidden border-2 border-[oklch(var(--saffron)/0.6)] bg-white/5 flex items-center justify-center flex-shrink-0 transition-all duration-300 group-hover:border-[oklch(var(--saffron))] group-hover:shadow-[0_0_12px_oklch(var(--saffron)/0.4)] shadow-[0_0_6px_oklch(var(--saffron)/0.2)]">
               <img
-                src="/assets/generated/odisha-emblem-transparent.png"
-                alt="Odisha Emblem"
-                className="w-8 h-8 object-cover"
+                src="/assets/generated/hostel-logo-transparent.dim_200x200.png"
+                alt="PMMBH Mohana Logo"
+                className="w-10 h-10 object-cover rounded-full"
               />
             </div>
             <div>

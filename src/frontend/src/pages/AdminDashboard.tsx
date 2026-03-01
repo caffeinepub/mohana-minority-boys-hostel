@@ -2015,8 +2015,12 @@ export default function AdminDashboard() {
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-14">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-[oklch(var(--saffron))] flex items-center justify-center">
-                <Settings className="w-4 h-4 text-[oklch(0.10_0.02_260)]" />
+              <div className="w-9 h-9 rounded-full overflow-hidden border-2 border-[oklch(var(--saffron)/0.55)] shadow-[0_0_8px_oklch(var(--saffron)/0.25)] flex-shrink-0">
+                <img
+                  src="/assets/generated/hostel-logo-transparent.dim_200x200.png"
+                  alt="PMMBH Mohana"
+                  className="w-full h-full object-cover"
+                />
               </div>
               <div>
                 <p className="font-display font-bold text-white text-sm">

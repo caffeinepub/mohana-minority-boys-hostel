@@ -15,8 +15,8 @@ import MixinStorage "blob-storage/Mixin";
 import AccessControl "authorization/access-control";
 import MixinAuthorization "authorization/MixinAuthorization";
 
-import Migration "migration";
-(with migration = Migration.run)
+
+
 actor {
   // Mixins for blob storage and authorization
   let accessControlState = AccessControl.initState();
