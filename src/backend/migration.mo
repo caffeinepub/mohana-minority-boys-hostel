@@ -1,12 +1,13 @@
 import Map "mo:core/Map";
+import Nat "mo:core/Nat";
 import Nat16 "mo:core/Nat16";
-import Time "mo:core/Time";
 import Principal "mo:core/Principal";
-import AccessControl "authorization/access-control";
 
 module {
-  type UserProfile = {
-    name : Text;
+  type ApplicationStatus = {
+    #pending;
+    #approved;
+    #rejected;
   };
 
   type StaffMember = {
@@ -44,7 +45,7 @@ module {
     id : Nat16;
     title : Text;
     imageUrl : Text;
-    uploadedAt : Time.Time;
+    uploadedAt : Int;
     uploadedBy : Text;
   };
 
@@ -58,13 +59,7 @@ module {
     mobile : Text;
     pinHash : Text;
     name : Text;
-    createdAt : Time.Time;
-  };
-
-  type ApplicationStatus = {
-    #pending;
-    #approved;
-    #rejected;
+    createdAt : Int;
   };
 
   type AdmissionApplication = {
@@ -85,14 +80,13 @@ module {
     incomeCertUrl : Text;
     casteCertUrl : Text;
     status : ApplicationStatus;
-    submittedAt : Time.Time;
-    reviewedAt : ?Time.Time;
+    submittedAt : Int;
+    reviewedAt : ?Int;
     reviewNote : Text;
   };
 
   type OldActor = {
-    accessControlState : AccessControl.AccessControlState;
-    userProfiles : Map.Map<Principal, UserProfile>;
+    userProfiles : Map.Map<Principal, { name : Text }>;
     staff : Map.Map<Nat16, StaffMember>;
     students : Map.Map<Nat16, Student>;
     fees : Map.Map<Nat16, FeesStructure>;
@@ -104,7 +98,18 @@ module {
     siteSettings : SiteSettings;
   };
 
-  type NewActor = OldActor;
+  type NewActor = {
+    userProfiles : Map.Map<Principal, { name : Text }>;
+    staff : Map.Map<Nat16, StaffMember>;
+    students : Map.Map<Nat16, Student>;
+    fees : Map.Map<Nat16, FeesStructure>;
+    gallery : Map.Map<Nat16, GalleryImage>;
+    studentApplicants : Map.Map<Text, StudentApplicant>;
+    applications : Map.Map<Nat16, AdmissionApplication>;
+    applicantSessions : Map.Map<Principal, Text>;
+    nextApplicationId : Nat;
+    siteSettings : SiteSettings;
+  };
 
   public func run(old : OldActor) : NewActor {
     old;

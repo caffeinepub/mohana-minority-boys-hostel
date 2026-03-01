@@ -82,9 +82,9 @@ export default function StudentPortalPage() {
     try {
       await login.mutateAsync({ mobile, pin: loginPin });
       localStorage.setItem("applicantMobile", mobile);
-      // Get name from registration (we don't have it in login, so skip)
+      localStorage.setItem("applicantPin", loginPin);
       toast.success("Login successful!");
-      navigate({ to: "/admission/form" });
+      navigate({ to: "/admission/status" });
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Invalid mobile or PIN";
       setError(msg);

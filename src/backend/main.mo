@@ -1,16 +1,22 @@
 import Text "mo:core/Text";
 import Time "mo:core/Time";
 import Map "mo:core/Map";
+import Iter "mo:core/Iter";
 import Runtime "mo:core/Runtime";
 import Order "mo:core/Order";
 import Nat16 "mo:core/Nat16";
 import Principal "mo:core/Principal";
 import List "mo:core/List";
 import Array "mo:core/Array";
+import Nat "mo:core/Nat";
+import Nat8 "mo:core/Nat8";
+import Nat32 "mo:core/Nat32";
 import MixinStorage "blob-storage/Mixin";
 import AccessControl "authorization/access-control";
 import MixinAuthorization "authorization/MixinAuthorization";
 
+import Migration "migration";
+(with migration = Migration.run)
 actor {
   // Mixins for blob storage and authorization
   let accessControlState = AccessControl.initState();
@@ -126,45 +132,36 @@ actor {
     announcementText = "Welcome to Post Matric Minority Boys Hostel, Biribatia, Mohana";
   };
 
-  // ---------- Authorization Helpers ----------
-  func hasUserPermission(caller : Principal) : Bool {
-    not caller.isAnonymous();
-  };
-
   // ---------- User Profile Management ----------
   public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
-    if (not hasUserPermission(caller)) {
-      Runtime.trap("Unauthorized: Only users can access profiles");
+    if (caller.isAnonymous()) {
+      Runtime.trap("Must be logged in");
     };
     userProfiles.get(caller);
   };
 
   public query ({ caller }) func getUserProfile(user : Principal) : async ?UserProfile {
-    if (caller != user and not hasUserPermission(caller)) {
-      Runtime.trap("Unauthorized: Can only view your own profile");
+    if (caller != user and caller.isAnonymous()) {
+      Runtime.trap("Must be logged in");
     };
     userProfiles.get(user);
   };
 
   public shared ({ caller }) func saveCallerUserProfile(profile : UserProfile) : async () {
-    if (not hasUserPermission(caller)) {
-      Runtime.trap("Unauthorized: Only users can save profiles");
+    if (caller.isAnonymous()) {
+      Runtime.trap("Must be logged in");
     };
     userProfiles.add(caller, profile);
   };
 
-  // ---------- Staff Management ----------
+  // ---------- Staff Management (Requires Login) ----------
   public shared ({ caller }) func addOrUpdateStaff(staffMember : StaffMember) : async () {
-    if (not hasUserPermission(caller)) {
-      Runtime.trap("Unauthorized: Only users can perform this operation");
-    };
+    if (caller.isAnonymous()) { Runtime.trap("Must be logged in") };
     staff.add(staffMember.id, staffMember);
   };
 
   public shared ({ caller }) func removeStaff(id : Nat16) : async () {
-    if (not hasUserPermission(caller)) {
-      Runtime.trap("Unauthorized: Only users can perform this operation");
-    };
+    if (caller.isAnonymous()) { Runtime.trap("Must be logged in") };
     staff.remove(id);
   };
 
@@ -179,18 +176,14 @@ actor {
     staff.values().toArray().sort(StaffMember.compareByOrder);
   };
 
-  // ---------- Student Management ----------
+  // ---------- Student Management (Requires Login) ----------
   public shared ({ caller }) func addOrUpdateStudent(student : Student) : async () {
-    if (not hasUserPermission(caller)) {
-      Runtime.trap("Unauthorized: Only users can perform this operation");
-    };
+    if (caller.isAnonymous()) { Runtime.trap("Must be logged in") };
     students.add(student.id, student);
   };
 
   public shared ({ caller }) func removeStudent(id : Nat16) : async () {
-    if (not hasUserPermission(caller)) {
-      Runtime.trap("Unauthorized: Only users can perform this operation");
-    };
+    if (caller.isAnonymous()) { Runtime.trap("Must be logged in") };
     students.remove(id);
   };
 
@@ -205,18 +198,14 @@ actor {
     students.values().toArray();
   };
 
-  // ---------- Fees Management ----------
+  // ---------- Fees Management (Requires Login) ----------
   public shared ({ caller }) func addOrUpdateFees(feesStructure : FeesStructure) : async () {
-    if (not hasUserPermission(caller)) {
-      Runtime.trap("Unauthorized: Only users can perform this operation");
-    };
+    if (caller.isAnonymous()) { Runtime.trap("Must be logged in") };
     fees.add(feesStructure.id, feesStructure);
   };
 
   public shared ({ caller }) func removeFees(id : Nat16) : async () {
-    if (not hasUserPermission(caller)) {
-      Runtime.trap("Unauthorized: Only users can perform this operation");
-    };
+    if (caller.isAnonymous()) { Runtime.trap("Must be logged in") };
     fees.remove(id);
   };
 
@@ -231,18 +220,14 @@ actor {
     fees.values().toArray();
   };
 
-  // ---------- Gallery Management ----------
+  // ---------- Gallery Management (Requires Login) ----------
   public shared ({ caller }) func addOrUpdateGalleryImage(image : GalleryImage) : async () {
-    if (not hasUserPermission(caller)) {
-      Runtime.trap("Unauthorized: Only users can perform this operation");
-    };
+    if (caller.isAnonymous()) { Runtime.trap("Must be logged in") };
     gallery.add(image.id, image);
   };
 
   public shared ({ caller }) func removeGalleryImage(id : Nat16) : async () {
-    if (not hasUserPermission(caller)) {
-      Runtime.trap("Unauthorized: Only users can perform this operation");
-    };
+    if (caller.isAnonymous()) { Runtime.trap("Must be logged in") };
     gallery.remove(id);
   };
 
@@ -257,11 +242,9 @@ actor {
     gallery.values().toArray();
   };
 
-  // ---------- Site Settings Management ----------
+  // ---------- Site Settings Management (Requires Login) ----------
   public shared ({ caller }) func updateSiteSettings(newSettings : SiteSettings) : async () {
-    if (not hasUserPermission(caller)) {
-      Runtime.trap("Unauthorized: Only users can perform this operation");
-    };
+    if (caller.isAnonymous()) { Runtime.trap("Must be logged in") };
     siteSettings := newSettings;
   };
 
@@ -269,7 +252,7 @@ actor {
     siteSettings;
   };
 
-  // ---------- Student Applicants Auth ----------
+  // ---------- Student Applicants Auth (No authorization required) ----------
   func hashPin(pin : Text) : Text {
     let chars = List.fromIter(pin.chars());
     chars.toText();
@@ -324,7 +307,7 @@ actor {
   };
 
   public query ({ caller }) func getMyApplication(mobile : Text) : async AdmissionApplication {
-    // Authorization: caller must be logged in as this mobile number OR be authenticated
+    // Authorization: caller must be logged in as this mobile number
     let sessionMobile = applicantSessions.get(caller);
 
     let authorized = switch (sessionMobile) {
@@ -346,16 +329,12 @@ actor {
   };
 
   public query ({ caller }) func getAllApplications() : async [AdmissionApplication] {
-    if (not hasUserPermission(caller)) {
-      Runtime.trap("Unauthorized: Only authenticated users can access all applications");
-    };
+    if (caller.isAnonymous()) { Runtime.trap("Must be logged in") };
     applications.values().toArray();
   };
 
   public shared ({ caller }) func approveApplication(id : Nat16, note : Text) : async () {
-    if (not hasUserPermission(caller)) {
-      Runtime.trap("Unauthorized: Only authenticated users can approve applications");
-    };
+    if (caller.isAnonymous()) { Runtime.trap("Must be logged in") };
     switch (applications.get(id)) {
       case (null) { Runtime.trap("Application not found") };
       case (?app) {
@@ -371,9 +350,7 @@ actor {
   };
 
   public shared ({ caller }) func rejectApplication(id : Nat16, note : Text) : async () {
-    if (not hasUserPermission(caller)) {
-      Runtime.trap("Unauthorized: Only authenticated users can reject applications");
-    };
+    if (caller.isAnonymous()) { Runtime.trap("Must be logged in") };
     switch (applications.get(id)) {
       case (null) { Runtime.trap("Application not found") };
       case (?app) {

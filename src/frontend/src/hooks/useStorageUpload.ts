@@ -23,11 +23,6 @@ export function useStorageUpload() {
 
   const uploadFile = useCallback(
     async (file: File): Promise<string | null> => {
-      if (!identity) {
-        setState((prev) => ({ ...prev, error: "Not authenticated" }));
-        return null;
-      }
-
       setState({ uploading: true, progress: 0, error: null });
 
       try {
@@ -37,10 +32,11 @@ export function useStorageUpload() {
           string | undefined
         >;
         const backendHost = configAny.backend_host;
-        const agent = await HttpAgent.create({
-          identity,
-          host: backendHost || "https://icp-api.io",
-        });
+        // Use authenticated identity if available (admin); omit for anonymous (students with mobile login)
+        const agentOptions = identity
+          ? { identity, host: backendHost || "https://icp-api.io" }
+          : { host: backendHost || "https://icp-api.io" };
+        const agent = await HttpAgent.create(agentOptions);
 
         const backendCanisterId = configAny.backend_canister_id ?? "";
         const projectId = configAny.project_id ?? "";

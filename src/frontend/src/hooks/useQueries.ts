@@ -201,7 +201,11 @@ export function useIsAdmin() {
     queryKey: ["isAdmin"],
     queryFn: async () => {
       if (!actor) return false;
-      return actor.isCallerAdmin();
+      try {
+        return await actor.isCallerAdmin();
+      } catch {
+        return false;
+      }
     },
     enabled: !!actor && !isFetching,
     staleTime: 30 * 1000,
@@ -272,7 +276,7 @@ export function useSubmitApplication() {
   });
 }
 
-export function useGetMyApplication(mobile: string) {
+export function useGetMyApplication(mobile: string, sessionReady = true) {
   const { actor, isFetching } = useActor();
   return useQuery<AdmissionApplication | null>({
     queryKey: ["myApplication", mobile],
@@ -284,7 +288,7 @@ export function useGetMyApplication(mobile: string) {
         return null;
       }
     },
-    enabled: !!actor && !isFetching && !!mobile,
+    enabled: !!actor && !isFetching && !!mobile && sessionReady,
     staleTime: 30 * 1000,
   });
 }

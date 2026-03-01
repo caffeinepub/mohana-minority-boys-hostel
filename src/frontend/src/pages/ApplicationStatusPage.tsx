@@ -18,9 +18,10 @@ import {
   XCircle,
 } from "lucide-react";
 import { motion } from "motion/react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { ApplicationStatus } from "../backend.d";
-import { useGetMyApplication } from "../hooks/useQueries";
+import { useActor } from "../hooks/useActor";
+import { useGetMyApplication, useLoginApplicant } from "../hooks/useQueries";
 
 function formatDate(ts?: bigint): string {
   if (!ts) return "—";
@@ -35,18 +36,38 @@ function formatDate(ts?: bigint): string {
 export default function ApplicationStatusPage() {
   const navigate = useNavigate();
   const mobile = localStorage.getItem("applicantMobile") || "";
+  const pin = localStorage.getItem("applicantPin") || "";
+  const loginApplicant = useLoginApplicant();
+  const { actor } = useActor();
+  const [sessionReady, setSessionReady] = useState(false);
+
+  const loginApplicantMutate = loginApplicant.mutateAsync;
 
   useEffect(() => {
     if (!mobile) {
       navigate({ to: "/admission/apply" });
+      return;
     }
-  }, [mobile, navigate]);
+    // Re-establish backend session on every page load so getMyApplication works
+    if (pin && actor) {
+      loginApplicantMutate({ mobile, pin })
+        .then(() => setSessionReady(true))
+        .catch(() => setSessionReady(true)); // proceed even if re-login fails
+    } else if (actor) {
+      setSessionReady(true);
+    }
+  }, [mobile, pin, actor, navigate, loginApplicantMutate]);
 
-  const { data: application, isLoading, refetch } = useGetMyApplication(mobile);
+  const {
+    data: application,
+    isLoading,
+    refetch,
+  } = useGetMyApplication(mobile, sessionReady);
 
   const handleLogout = () => {
     localStorage.removeItem("applicantMobile");
     localStorage.removeItem("applicantName");
+    localStorage.removeItem("applicantPin");
     navigate({ to: "/admission/apply" });
   };
 

@@ -87,6 +87,14 @@ import {
 import { useStorageUpload } from "../hooks/useStorageUpload";
 
 // ────────────────────────────────────────────────────────────────────────────
+// Safe ID generator — Nat16 range (1–65534) to avoid ICP integer overflow
+// ────────────────────────────────────────────────────────────────────────────
+
+function safeId(): number {
+  return (Date.now() % 65000) + 1;
+}
+
+// ────────────────────────────────────────────────────────────────────────────
 // Staff Management
 // ────────────────────────────────────────────────────────────────────────────
 
@@ -114,7 +122,7 @@ function StaffManagement() {
   const [deleteId, setDeleteId] = useState<number | null>(null);
 
   const openAdd = () => {
-    setEditing({ ...emptyStaff, id: Date.now() });
+    setEditing({ ...emptyStaff, id: safeId() });
     setPhotoFile(null);
     setShowForm(true);
   };
@@ -487,7 +495,7 @@ function StudentsManagement() {
   const [deleteId, setDeleteId] = useState<number | null>(null);
 
   const openAdd = () => {
-    setEditing({ ...emptyStudent, id: Date.now() });
+    setEditing({ ...emptyStudent, id: safeId() });
     setShowForm(true);
   };
 
@@ -806,7 +814,7 @@ function FeesManagement() {
   const [messFeesInput, setMessFeesInput] = useState("800");
 
   const openAdd = () => {
-    setEditing({ ...emptyFee, id: Date.now() });
+    setEditing({ ...emptyFee, id: safeId() });
     setMessFeesInput("800");
     setShowForm(true);
   };
@@ -1103,7 +1111,7 @@ function GalleryManagement() {
     if (!url) return;
 
     const newImage: GalleryImage = {
-      id: Date.now(),
+      id: safeId(),
       title: title.trim(),
       imageUrl: url,
       uploadedAt: BigInt(Date.now()),
