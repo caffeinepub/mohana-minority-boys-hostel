@@ -1,24 +1,28 @@
 # Mohana Minority Boys Hostel
 
 ## Current State
-Full-stack hostel management app with:
-- Backend: Motoko with authorization (access-control.mo), blob storage, staff, students, fees, gallery, site settings, student applicants, and admission applications
-- Frontend: React/TypeScript admin dashboard with tabs for staff, students, fees, gallery, settings, admins, and applications
-- Admin login via Internet Identity; first caller with correct admin token becomes admin
+Full-stack hostel management website with:
+- Public pages: Home, Staff, Students, Fees, Scholarship, Gallery, Admission
+- Admin dashboard with tabs: Applications, Staff, Students, Fees, Gallery, Settings, Admins
+- Internet Identity login for admin access (open to all authenticated users)
+- Student applicant portal with mobile+PIN registration, 3-step application form
+- Blob storage for photo/document uploads
+- Authorization module (access-control.mo) where first caller with admin token becomes admin, others become #user
 
 ## Requested Changes (Diff)
 
 ### Add
-- Nothing new to add
+- Nothing new
 
 ### Modify
-- Fix the authorization bug: `getUserRole` in access-control currently calls `Runtime.trap("User is not registered")` when a caller has no role assigned. This causes all admin write operations to fail with a trap error instead of returning an "Unauthorized" response. Change this so unregistered users are treated as `#guest` (read-only) instead of trapping.
-- The `isAdmin` check must return false (not trap) for unregistered or guest callers, so admin operations gracefully return "Unauthorized" instead of crashing.
+- **Authorization logic**: The `isCallerAdminSafe` and `hasUserPermission` helper functions must allow ANY non-anonymous caller (not just those with `#admin` role). Since the admin panel was opened to all logged-in users, write operations must also permit any authenticated principal. Previously, users were assigned `#user` role on first login (not `#admin`) and this blocked all save/update operations.
 
 ### Remove
-- Nothing to remove
+- Nothing
 
 ## Implementation Plan
-1. Regenerate backend Motoko with fixed authorization: `getUserRole` returns `#guest` for unregistered users instead of trapping
-2. Keep all existing data types, APIs, and business logic identical
-3. The only change is the fallback behavior for unregistered callers in getUserRole
+1. Regenerate backend with corrected authorization helpers:
+   - `isCallerAdminSafe(caller)`: returns `true` for any non-anonymous principal
+   - `hasUserPermission(caller)`: returns `true` for any non-anonymous principal
+   - All other backend logic (staff, students, fees, gallery, applications, settings, applicant auth) remains identical
+2. Keep all existing data types, APIs, and functionality unchanged
