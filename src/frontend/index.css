@@ -1,0 +1,196 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: "Bricolage Grotesque";
+  src: url("/assets/fonts/BricolageGrotesque[opsz,wdth,wght].woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Cabinet Grotesk";
+  src: url("/assets/fonts/CabinetGrotesk-Variable.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Fraunces";
+  src: url("/assets/fonts/Fraunces[SOFT,WONK,opsz,wght].woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@layer base {
+  :root {
+    --radius: 0.5rem;
+
+    /* Deep Navy Blue + Saffron/Gold palette — government institutional, clean, trustworthy */
+    --background: 0.97 0.005 240;
+    --foreground: 0.15 0.02 260;
+
+    --card: 1 0 0;
+    --card-foreground: 0.15 0.02 260;
+
+    --popover: 1 0 0;
+    --popover-foreground: 0.15 0.02 260;
+
+    /* Deep navy blue — primary institutional color */
+    --primary: 0.28 0.09 258;
+    --primary-foreground: 0.98 0 0;
+
+    /* Saffron/gold accent */
+    --secondary: 0.75 0.15 62;
+    --secondary-foreground: 0.15 0.02 260;
+
+    --muted: 0.93 0.01 240;
+    --muted-foreground: 0.45 0.025 260;
+
+    /* Warm saffron accent */
+    --accent: 0.72 0.16 58;
+    --accent-foreground: 0.12 0.02 260;
+
+    --destructive: 0.577 0.245 27.325;
+    --destructive-foreground: 0.985 0 0;
+
+    --border: 0.88 0.015 240;
+    --input: 0.88 0.015 240;
+    --ring: 0.28 0.09 258;
+
+    --chart-1: 0.28 0.09 258;
+    --chart-2: 0.72 0.16 58;
+    --chart-3: 0.45 0.12 258;
+    --chart-4: 0.65 0.14 62;
+    --chart-5: 0.55 0.1 258;
+
+    --sidebar: 0.20 0.07 258;
+    --sidebar-foreground: 0.95 0.01 240;
+    --sidebar-primary: 0.72 0.16 58;
+    --sidebar-primary-foreground: 0.12 0.02 260;
+    --sidebar-accent: 0.25 0.08 258;
+    --sidebar-accent-foreground: 0.95 0.01 240;
+    --sidebar-border: 0.30 0.07 258;
+    --sidebar-ring: 0.72 0.16 58;
+
+    /* Custom tokens */
+    --navy: 0.20 0.09 258;
+    --navy-dark: 0.14 0.07 258;
+    --saffron: 0.72 0.18 58;
+    --saffron-light: 0.88 0.10 62;
+    --gold: 0.65 0.16 65;
+    --green-india: 0.45 0.14 145;
+  }
+
+  .dark {
+    --background: 0.12 0.04 258;
+    --foreground: 0.95 0.01 240;
+
+    --card: 0.16 0.05 258;
+    --card-foreground: 0.95 0.01 240;
+
+    --popover: 0.18 0.05 258;
+    --popover-foreground: 0.95 0.01 240;
+
+    --primary: 0.72 0.16 58;
+    --primary-foreground: 0.12 0.02 260;
+
+    --secondary: 0.22 0.06 258;
+    --secondary-foreground: 0.95 0.01 240;
+
+    --muted: 0.22 0.06 258;
+    --muted-foreground: 0.65 0.03 258;
+
+    --accent: 0.72 0.16 58;
+    --accent-foreground: 0.12 0.02 260;
+
+    --destructive: 0.704 0.191 22.216;
+    --destructive-foreground: 0.205 0 0;
+
+    --border: 0.25 0.06 258;
+    --input: 0.25 0.06 258;
+    --ring: 0.72 0.16 58;
+
+    --sidebar: 0.14 0.05 258;
+    --sidebar-foreground: 0.95 0.01 240;
+    --sidebar-primary: 0.72 0.16 58;
+    --sidebar-primary-foreground: 0.12 0.02 260;
+    --sidebar-accent: 0.20 0.06 258;
+    --sidebar-accent-foreground: 0.95 0.01 240;
+    --sidebar-border: 0.22 0.06 258;
+    --sidebar-ring: 0.72 0.16 58;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: "Cabinet Grotesk", sans-serif;
+  }
+}
+
+@layer utilities {
+  .font-display {
+    font-family: "Bricolage Grotesque", sans-serif;
+  }
+  .font-serif {
+    font-family: "Fraunces", serif;
+  }
+  .font-body {
+    font-family: "Cabinet Grotesk", sans-serif;
+  }
+
+  .navy-gradient {
+    background: linear-gradient(
+      135deg,
+      oklch(var(--navy-dark)) 0%,
+      oklch(var(--navy)) 50%,
+      oklch(0.25 0.09 258) 100%
+    );
+  }
+
+  .saffron-gradient {
+    background: linear-gradient(
+      135deg,
+      oklch(var(--saffron)) 0%,
+      oklch(var(--gold)) 100%
+    );
+  }
+
+  .hero-pattern {
+    background-image:
+      radial-gradient(circle at 20% 50%, oklch(0.35 0.09 258 / 0.4) 0%, transparent 50%),
+      radial-gradient(circle at 80% 20%, oklch(0.72 0.16 58 / 0.15) 0%, transparent 40%),
+      linear-gradient(135deg, oklch(0.18 0.08 258) 0%, oklch(0.26 0.09 258) 100%);
+  }
+
+  .announcement-ticker {
+    overflow: hidden;
+    white-space: nowrap;
+  }
+
+  .ticker-text {
+    display: inline-block;
+    animation: ticker 20s linear infinite;
+  }
+
+  @keyframes ticker {
+    0% { transform: translateX(100vw); }
+    100% { transform: translateX(-100%); }
+  }
+
+  .card-hover {
+    @apply transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5;
+  }
+
+  .staff-card-superintendent {
+    background: linear-gradient(135deg, oklch(0.18 0.08 258) 0%, oklch(0.25 0.09 258) 100%);
+    border: 2px solid oklch(var(--saffron));
+  }
+}
