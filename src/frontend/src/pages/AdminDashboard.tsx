@@ -31,6 +31,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Principal } from "@icp-sdk/core/principal";
 import { Link } from "@tanstack/react-router";
 import {
+  CheckCircle2,
+  ClipboardList,
+  Eye,
   GraduationCap,
   Home,
   Images,
@@ -47,29 +50,34 @@ import {
   UserCog,
   Users,
   X,
+  XCircle,
 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import type {
+  AdmissionApplication,
   FeesStructure,
   GalleryImage,
   SiteSettings,
   StaffMember,
   Student,
 } from "../backend.d";
-import { UserRole } from "../backend.d";
+import { ApplicationStatus, UserRole } from "../backend.d";
 import { useInternetIdentity } from "../hooks/useInternetIdentity";
 import {
   useAddOrUpdateFees,
   useAddOrUpdateGalleryImage,
   useAddOrUpdateStaff,
   useAddOrUpdateStudent,
+  useApproveApplication,
   useAssignUserRole,
+  useGetAllApplications,
   useGetAllFees,
   useGetAllGalleryImages,
   useGetAllStaff,
   useGetAllStudents,
   useGetSiteSettings,
+  useRejectApplication,
   useRemoveFees,
   useRemoveGalleryImage,
   useRemoveStaff,
@@ -1522,6 +1530,458 @@ function AdminRegistrationPanel() {
 }
 
 // ────────────────────────────────────────────────────────────────────────────
+// Applications Management
+// ────────────────────────────────────────────────────────────────────────────
+
+function statusBadge(status: ApplicationStatus) {
+  if (status === ApplicationStatus.approved)
+    return (
+      <Badge className="bg-green-100 text-green-700 border-green-200 text-xs font-body">
+        Approved
+      </Badge>
+    );
+  if (status === ApplicationStatus.rejected)
+    return (
+      <Badge className="bg-red-100 text-red-700 border-red-200 text-xs font-body">
+        Rejected
+      </Badge>
+    );
+  return (
+    <Badge className="bg-amber-100 text-amber-700 border-amber-200 text-xs font-body">
+      Pending
+    </Badge>
+  );
+}
+
+function formatTs(ts?: bigint): string {
+  if (!ts) return "—";
+  return new Date(Number(ts)).toLocaleDateString("en-IN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+}
+
+function ApplicationsManagement() {
+  const { data: applications = [], isLoading } = useGetAllApplications();
+  const approve = useApproveApplication();
+  const reject = useRejectApplication();
+
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [search, setSearch] = useState("");
+  const [viewApp, setViewApp] = useState<AdmissionApplication | null>(null);
+  const [actionNote, setActionNote] = useState("");
+  const [actionType, setActionType] = useState<"approve" | "reject" | null>(
+    null,
+  );
+
+  const filtered = applications.filter((app) => {
+    const matchStatus = statusFilter === "all" || app.status === statusFilter;
+    const matchSearch =
+      !search ||
+      app.applicantName.toLowerCase().includes(search.toLowerCase()) ||
+      app.applicantMobile.includes(search);
+    return matchStatus && matchSearch;
+  });
+
+  const handleAction = async () => {
+    if (!viewApp || !actionType) return;
+    try {
+      if (actionType === "approve") {
+        await approve.mutateAsync({ id: viewApp.id, note: actionNote });
+        toast.success("Application approved!");
+      } else {
+        await reject.mutateAsync({ id: viewApp.id, note: actionNote });
+        toast.success("Application rejected.");
+      }
+      setViewApp(null);
+      setActionType(null);
+      setActionNote("");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Action failed");
+    }
+  };
+
+  const pendingCount = applications.filter(
+    (a) => a.status === ApplicationStatus.pending,
+  ).length;
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between flex-wrap gap-4">
+        <div>
+          <h2 className="font-display font-bold text-xl text-foreground">
+            Admission Applications
+          </h2>
+          <p className="text-muted-foreground text-sm font-body">
+            {applications.length} total ·{" "}
+            <span className="text-amber-600 font-medium">
+              {pendingCount} pending
+            </span>
+          </p>
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        <Input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search by name or mobile..."
+          className="font-body text-sm max-w-xs"
+        />
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="font-body text-sm w-44">
+            <SelectValue placeholder="Filter by status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all" className="font-body text-sm">
+              All Applications
+            </SelectItem>
+            <SelectItem value="pending" className="font-body text-sm">
+              Pending
+            </SelectItem>
+            <SelectItem value="approved" className="font-body text-sm">
+              Approved
+            </SelectItem>
+            <SelectItem value="rejected" className="font-body text-sm">
+              Rejected
+            </SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {isLoading ? (
+        <div className="flex items-center gap-2">
+          <Loader2 className="w-4 h-4 animate-spin" />
+          <span className="text-sm font-body text-muted-foreground">
+            Loading...
+          </span>
+        </div>
+      ) : (
+        <div className="rounded-xl border border-border overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-muted/50 hover:bg-muted/50">
+                <TableHead className="font-display text-xs font-semibold">
+                  Name
+                </TableHead>
+                <TableHead className="font-display text-xs font-semibold hidden sm:table-cell">
+                  Mobile
+                </TableHead>
+                <TableHead className="font-display text-xs font-semibold hidden md:table-cell">
+                  Community
+                </TableHead>
+                <TableHead className="font-display text-xs font-semibold hidden lg:table-cell">
+                  Class
+                </TableHead>
+                <TableHead className="font-display text-xs font-semibold hidden lg:table-cell">
+                  Submitted
+                </TableHead>
+                <TableHead className="font-display text-xs font-semibold">
+                  Status
+                </TableHead>
+                <TableHead className="font-display text-xs font-semibold w-20">
+                  Actions
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filtered.length === 0 ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={7}
+                    className="text-center py-8 text-muted-foreground font-body text-sm"
+                  >
+                    No applications found.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filtered.map((app) => (
+                  <TableRow key={app.id} className="hover:bg-muted/30">
+                    <TableCell className="font-body font-medium text-sm">
+                      {app.applicantName}
+                    </TableCell>
+                    <TableCell className="text-sm font-body text-muted-foreground hidden sm:table-cell">
+                      {app.applicantMobile}
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell">
+                      <Badge
+                        variant="outline"
+                        className="text-xs font-body capitalize"
+                      >
+                        {app.category}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-xs font-body hidden lg:table-cell">
+                      {app.classYear}
+                    </TableCell>
+                    <TableCell className="text-xs text-muted-foreground font-body hidden lg:table-cell">
+                      {formatTs(app.submittedAt)}
+                    </TableCell>
+                    <TableCell>{statusBadge(app.status)}</TableCell>
+                    <TableCell>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setViewApp(app);
+                          setActionType(null);
+                          setActionNote("");
+                        }}
+                        className="h-8 w-8 p-0"
+                      >
+                        <Eye className="w-3.5 h-3.5" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      )}
+
+      {/* View Application Dialog */}
+      <Dialog
+        open={!!viewApp}
+        onOpenChange={(open) => !open && setViewApp(null)}
+      >
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          {viewApp && (
+            <>
+              <DialogHeader>
+                <DialogTitle className="font-display">
+                  Application — {viewApp.applicantName}
+                </DialogTitle>
+              </DialogHeader>
+
+              <div className="space-y-4">
+                {/* Status */}
+                <div className="flex items-center gap-2">
+                  {statusBadge(viewApp.status)}
+                  <span className="text-xs text-muted-foreground font-body">
+                    Submitted: {formatTs(viewApp.submittedAt)}
+                  </span>
+                  {viewApp.reviewedAt && (
+                    <span className="text-xs text-muted-foreground font-body">
+                      · Reviewed: {formatTs(viewApp.reviewedAt)}
+                    </span>
+                  )}
+                </div>
+
+                {/* Details Grid */}
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  {[
+                    { label: "Full Name", value: viewApp.applicantName },
+                    { label: "Father's Name", value: viewApp.fatherName },
+                    {
+                      label: "Mobile",
+                      value: `+91 ${viewApp.applicantMobile}`,
+                    },
+                    { label: "Date of Birth", value: viewApp.dateOfBirth },
+                    { label: "Community", value: viewApp.category },
+                    { label: "Annual Income", value: viewApp.annualIncome },
+                    { label: "District", value: viewApp.district },
+                    { label: "State", value: viewApp.state },
+                    { label: "PIN Code", value: viewApp.pinCode },
+                    { label: "Class/Year", value: viewApp.classYear },
+                  ].map(({ label, value }) => (
+                    <div key={label} className="space-y-0.5">
+                      <p className="text-xs text-muted-foreground font-body">
+                        {label}
+                      </p>
+                      <p className="font-body font-medium text-foreground text-sm">
+                        {value || "—"}
+                      </p>
+                    </div>
+                  ))}
+                  <div className="col-span-2 space-y-0.5">
+                    <p className="text-xs text-muted-foreground font-body">
+                      Address
+                    </p>
+                    <p className="font-body font-medium text-foreground text-sm">
+                      {viewApp.address || "—"}
+                    </p>
+                  </div>
+                  <div className="col-span-2 space-y-0.5">
+                    <p className="text-xs text-muted-foreground font-body">
+                      Institution
+                    </p>
+                    <p className="font-body font-medium text-foreground text-sm">
+                      {viewApp.institutionName || "—"}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Documents */}
+                <div className="border-t border-border pt-3">
+                  <p className="text-xs font-body font-semibold text-foreground mb-3">
+                    Uploaded Documents
+                  </p>
+                  <div className="flex flex-wrap gap-4">
+                    {viewApp.photoUrl && (
+                      <div className="space-y-1">
+                        <p className="text-xs text-muted-foreground font-body">
+                          Photo
+                        </p>
+                        <a
+                          href={viewApp.photoUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <img
+                            src={viewApp.photoUrl}
+                            alt="Applicant portrait"
+                            className="w-20 h-20 object-cover rounded-lg border border-border hover:opacity-80 transition-opacity"
+                          />
+                        </a>
+                      </div>
+                    )}
+                    {viewApp.incomeCertUrl && (
+                      <div className="space-y-1">
+                        <p className="text-xs text-muted-foreground font-body">
+                          Income Certificate
+                        </p>
+                        <a
+                          href={viewApp.incomeCertUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1.5 text-xs text-primary hover:underline font-body p-2 border border-border rounded-lg"
+                        >
+                          View Document
+                        </a>
+                      </div>
+                    )}
+                    {viewApp.casteCertUrl && (
+                      <div className="space-y-1">
+                        <p className="text-xs text-muted-foreground font-body">
+                          Caste Certificate
+                        </p>
+                        <a
+                          href={viewApp.casteCertUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1.5 text-xs text-primary hover:underline font-body p-2 border border-border rounded-lg"
+                        >
+                          View Document
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Review note if any */}
+                {viewApp.reviewNote && (
+                  <div className="border-t border-border pt-3">
+                    <p className="text-xs font-body font-semibold text-foreground mb-1">
+                      Review Note
+                    </p>
+                    <p className="text-sm font-body text-muted-foreground">
+                      {viewApp.reviewNote}
+                    </p>
+                  </div>
+                )}
+
+                {/* Approve / Reject */}
+                {viewApp.status === ApplicationStatus.pending && (
+                  <div className="border-t border-border pt-4 space-y-3">
+                    {actionType ? (
+                      <>
+                        <Label className="font-body text-sm">
+                          {actionType === "approve"
+                            ? "Approval Note (optional)"
+                            : "Rejection Reason *"}
+                        </Label>
+                        <Textarea
+                          value={actionNote}
+                          onChange={(e) => setActionNote(e.target.value)}
+                          placeholder={
+                            actionType === "approve"
+                              ? "e.g. Report to hostel office by Aug 15..."
+                              : "e.g. Income certificate not valid..."
+                          }
+                          rows={3}
+                          className="font-body text-sm resize-none"
+                        />
+                        <div className="flex gap-3">
+                          <Button
+                            onClick={handleAction}
+                            disabled={
+                              approve.isPending ||
+                              reject.isPending ||
+                              (actionType === "reject" && !actionNote.trim())
+                            }
+                            className={`font-body gap-2 ${
+                              actionType === "approve"
+                                ? "bg-green-600 hover:bg-green-700 text-white"
+                                : "bg-red-600 hover:bg-red-700 text-white"
+                            }`}
+                          >
+                            {approve.isPending || reject.isPending ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : actionType === "approve" ? (
+                              <CheckCircle2 className="w-4 h-4" />
+                            ) : (
+                              <XCircle className="w-4 h-4" />
+                            )}
+                            Confirm{" "}
+                            {actionType === "approve"
+                              ? "Approval"
+                              : "Rejection"}
+                          </Button>
+                          <Button
+                            variant="outline"
+                            onClick={() => {
+                              setActionType(null);
+                              setActionNote("");
+                            }}
+                            className="font-body"
+                          >
+                            Cancel
+                          </Button>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="flex gap-3">
+                        <Button
+                          onClick={() => setActionType("approve")}
+                          className="bg-green-600 hover:bg-green-700 text-white font-body gap-2"
+                        >
+                          <CheckCircle2 className="w-4 h-4" />
+                          Approve
+                        </Button>
+                        <Button
+                          onClick={() => setActionType("reject")}
+                          className="bg-red-600 hover:bg-red-700 text-white font-body gap-2"
+                        >
+                          <XCircle className="w-4 h-4" />
+                          Reject
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => setViewApp(null)}
+                  className="font-body"
+                >
+                  Close
+                </Button>
+              </DialogFooter>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
+// ────────────────────────────────────────────────────────────────────────────
 // Main Admin Dashboard
 // ────────────────────────────────────────────────────────────────────────────
 
@@ -1530,6 +1990,11 @@ export default function AdminDashboard() {
   const { data: staff = [] } = useGetAllStaff();
   const { data: students = [] } = useGetAllStudents();
   const { data: images = [] } = useGetAllGalleryImages();
+  const { data: applications = [] } = useGetAllApplications();
+
+  const pendingApps = applications.filter(
+    (a) => a.status === ApplicationStatus.pending,
+  ).length;
 
   const handleLogout = () => {
     clear();
@@ -1599,16 +2064,19 @@ export default function AdminDashboard() {
               bg: "bg-green-50",
             },
             {
+              label: "Applications",
+              value:
+                pendingApps > 0
+                  ? `${pendingApps} pending`
+                  : applications.length,
+              icon: ClipboardList,
+              color: pendingApps > 0 ? "text-amber-600" : "text-purple-600",
+              bg: pendingApps > 0 ? "bg-amber-50" : "bg-purple-50",
+            },
+            {
               label: "Gallery Photos",
               value: images.length,
               icon: Images,
-              color: "text-purple-600",
-              bg: "bg-purple-50",
-            },
-            {
-              label: "System Status",
-              value: "Online",
-              icon: Settings,
               color: "text-orange-600",
               bg: "bg-orange-50",
             },
@@ -1638,9 +2106,14 @@ export default function AdminDashboard() {
         </div>
 
         {/* Main Tabs */}
-        <Tabs defaultValue="staff" className="w-full">
-          <TabsList className="grid grid-cols-6 mb-8 h-auto p-1 bg-muted/70 w-full max-w-3xl">
+        <Tabs defaultValue="applications" className="w-full">
+          <TabsList className="grid grid-cols-7 mb-8 h-auto p-1 bg-muted/70 w-full overflow-x-auto">
             {[
+              {
+                value: "applications",
+                icon: ClipboardList,
+                label: "Applications",
+              },
               { value: "staff", icon: Users, label: "Staff" },
               { value: "students", icon: GraduationCap, label: "Students" },
               { value: "fees", icon: IndianRupee, label: "Fees" },
@@ -1651,14 +2124,22 @@ export default function AdminDashboard() {
               <TabsTrigger
                 key={tab.value}
                 value={tab.value}
-                className="flex flex-col sm:flex-row items-center gap-1 font-body text-xs py-2 data-[state=active]:bg-background data-[state=active]:shadow-sm"
+                className="flex flex-col sm:flex-row items-center gap-1 font-body text-xs py-2 data-[state=active]:bg-background data-[state=active]:shadow-sm relative"
               >
                 <tab.icon className="w-4 h-4" />
                 <span className="hidden sm:inline">{tab.label}</span>
+                {tab.value === "applications" && pendingApps > 0 && (
+                  <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-amber-500 text-white text-[9px] flex items-center justify-center font-bold">
+                    {pendingApps}
+                  </span>
+                )}
               </TabsTrigger>
             ))}
           </TabsList>
 
+          <TabsContent value="applications">
+            <ApplicationsManagement />
+          </TabsContent>
           <TabsContent value="staff">
             <StaffManagement />
           </TabsContent>

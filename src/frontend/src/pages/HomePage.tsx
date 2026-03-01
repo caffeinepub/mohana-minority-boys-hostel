@@ -24,25 +24,33 @@ const features = [
     icon: Home,
     title: "Free Accommodation",
     desc: "Government-funded free boarding and lodging for eligible minority students pursuing post-matric education.",
-    color: "text-blue-400",
+    accent: "feature-card-navy",
+    iconBg: "bg-primary/8",
+    iconColor: "text-primary",
   },
   {
     icon: BookOpen,
     title: "Educational Support",
     desc: "Study room facilities, library access, and academic guidance to help students excel in their studies.",
-    color: "text-green-400",
+    accent: "feature-card-gold",
+    iconBg: "bg-[oklch(var(--saffron)/0.12)]",
+    iconColor: "text-[oklch(var(--saffron))]",
   },
   {
     icon: IndianRupee,
     title: "Minimal Fees",
     desc: "Only nominal mess fees apply. Hostel fees, electricity, and all other charges are borne by the Government of Odisha.",
-    color: "text-[oklch(var(--saffron))]",
+    accent: "feature-card-navy",
+    iconBg: "bg-primary/8",
+    iconColor: "text-primary",
   },
   {
     icon: Award,
     title: "Scholarship Support",
     desc: "Students are assisted in applying for state and central government scholarships via the Odisha Scholarship Portal.",
-    color: "text-purple-400",
+    accent: "feature-card-gold",
+    iconBg: "bg-[oklch(var(--saffron)/0.12)]",
+    iconColor: "text-[oklch(var(--saffron))]",
   },
 ];
 
@@ -74,43 +82,46 @@ export default function HomePage() {
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6 }}
+                transition={{ duration: 0.5 }}
+                className="flex items-center gap-3 mb-5"
               >
-                <Badge className="bg-[oklch(var(--saffron)/0.2)] text-[oklch(var(--saffron))] border-[oklch(var(--saffron)/0.3)] mb-4 font-body text-xs px-3 py-1">
+                <div className="gold-rule w-8" />
+                <span className="font-body text-xs tracking-[0.18em] uppercase text-[oklch(var(--saffron))] font-semibold">
                   Government of Odisha Initiative
-                </Badge>
+                </span>
               </motion.div>
 
               <motion.h1
-                initial={{ opacity: 0, y: 24 }}
+                initial={{ opacity: 0, y: 28 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.1 }}
-                className="font-display font-bold text-4xl md:text-5xl lg:text-6xl text-white leading-tight mb-2"
+                transition={{ duration: 0.65, delay: 0.1 }}
+                className="font-serif font-bold leading-[1.08] mb-3"
               >
-                Post Matric
-              </motion.h1>
-              <motion.h1
-                initial={{ opacity: 0, y: 24 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.2 }}
-                className="font-display font-bold text-4xl md:text-5xl lg:text-6xl text-[oklch(var(--saffron))] leading-tight mb-2"
-              >
-                Minority Boys
-              </motion.h1>
-              <motion.h1
-                initial={{ opacity: 0, y: 24 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.3 }}
-                className="font-display font-bold text-4xl md:text-5xl lg:text-6xl text-white leading-tight mb-6"
-              >
-                Hostel, Mohana
+                <span className="block text-white/90 text-3xl md:text-4xl lg:text-[2.6rem] tracking-tight">
+                  Post Matric
+                </span>
+                <span className="block text-[oklch(var(--saffron))] text-4xl md:text-5xl lg:text-6xl tracking-tight">
+                  Minority Boys
+                </span>
+                <span className="block text-white text-3xl md:text-4xl lg:text-[2.6rem] tracking-tight">
+                  Hostel, Mohana
+                </span>
               </motion.h1>
 
-              <motion.p
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
+              {/* Gold ruled separator */}
+              <motion.div
+                initial={{ opacity: 0, scaleX: 0 }}
+                animate={{ opacity: 1, scaleX: 1 }}
                 transition={{ duration: 0.6, delay: 0.4 }}
-                className="text-white/70 font-body text-base md:text-lg mb-8 max-w-lg leading-relaxed"
+                style={{ transformOrigin: "left" }}
+                className="gold-rule w-24 mb-5"
+              />
+
+              <motion.p
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.5 }}
+                className="text-white/65 font-body text-base md:text-lg mb-8 max-w-lg leading-relaxed"
               >
                 Empowering minority students through free accommodation, quality
                 education support, and scholarship assistance — building
@@ -239,10 +250,14 @@ export default function HomePage() {
             viewport={{ once: true }}
             className="text-center mb-14"
           >
-            <Badge className="bg-primary/10 text-primary mb-4 font-body text-xs px-3 py-1 border-primary/20">
-              About the Hostel
-            </Badge>
-            <h2 className="font-display font-bold text-3xl md:text-4xl text-foreground mb-4">
+            <div className="flex items-center justify-center gap-3 mb-4">
+              <div className="h-px flex-1 max-w-[60px] bg-border" />
+              <span className="font-body text-[11px] tracking-[0.18em] uppercase text-muted-foreground font-semibold">
+                About the Hostel
+              </span>
+              <div className="h-px flex-1 max-w-[60px] bg-border" />
+            </div>
+            <h2 className="font-serif font-bold text-3xl md:text-4xl text-foreground mb-4 tracking-tight">
               Everything Provided by Government
             </h2>
             <p className="text-muted-foreground font-body max-w-xl mx-auto text-sm leading-relaxed">
@@ -260,10 +275,16 @@ export default function HomePage() {
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.12 }}
               >
-                <Card className="h-full card-hover border-border shadow-xs">
+                <Card
+                  className={`h-full card-hover border-border shadow-xs rounded-xl overflow-hidden ${feature.accent}`}
+                >
                   <CardContent className="p-6">
-                    <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center mb-4">
-                      <feature.icon className={`w-6 h-6 ${feature.color}`} />
+                    <div
+                      className={`w-11 h-11 rounded-lg ${feature.iconBg} flex items-center justify-center mb-4`}
+                    >
+                      <feature.icon
+                        className={`w-5 h-5 ${feature.iconColor}`}
+                      />
                     </div>
                     <h3 className="font-display font-semibold text-base text-foreground mb-2">
                       {feature.title}
@@ -289,7 +310,7 @@ export default function HomePage() {
               viewport={{ once: true }}
             >
               <Building2 className="w-12 h-12 mx-auto mb-4 text-[oklch(var(--saffron))]" />
-              <h2 className="font-display font-bold text-3xl mb-4">
+              <h2 className="font-serif font-bold text-3xl mb-4 tracking-tight">
                 About the Government Scheme
               </h2>
               <p className="text-white/80 font-body text-sm leading-relaxed mb-8 max-w-2xl mx-auto">
@@ -328,9 +349,15 @@ export default function HomePage() {
       {/* Quick Access Cards */}
       <section className="py-16 bg-muted/50">
         <div className="container mx-auto px-4">
-          <h2 className="font-display font-bold text-2xl text-foreground text-center mb-10">
-            Quick Access
-          </h2>
+          <div className="text-center mb-10">
+            <div className="flex items-center justify-center gap-3 mb-3">
+              <div className="h-px flex-1 max-w-[60px] bg-border" />
+              <span className="font-body text-[11px] tracking-[0.18em] uppercase text-muted-foreground font-semibold">
+                Quick Access
+              </span>
+              <div className="h-px flex-1 max-w-[60px] bg-border" />
+            </div>
+          </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-4xl mx-auto">
             {[
               {

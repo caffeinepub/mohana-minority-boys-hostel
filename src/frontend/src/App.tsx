@@ -13,14 +13,17 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminLoginPage from "./pages/AdminLoginPage";
 import AdmissionPage from "./pages/AdmissionPage";
+import ApplicationFormPage from "./pages/ApplicationFormPage";
+import ApplicationStatusPage from "./pages/ApplicationStatusPage";
 import FeesPage from "./pages/FeesPage";
 import GalleryPage from "./pages/GalleryPage";
 import HomePage from "./pages/HomePage";
 import ScholarshipPage from "./pages/ScholarshipPage";
 import StaffPage from "./pages/StaffPage";
+import StudentPortalPage from "./pages/StudentPortalPage";
 import StudentsPage from "./pages/StudentsPage";
 
-// Root layout
+// Root layout with navbar/footer
 function RootLayout() {
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -31,6 +34,16 @@ function RootLayout() {
         <Outlet />
       </main>
       <Footer />
+    </div>
+  );
+}
+
+// Minimal layout for student portal (no main nav, no footer clutter)
+function MinimalLayout() {
+  return (
+    <div className="min-h-screen flex flex-col bg-background">
+      <Toaster richColors position="top-right" />
+      <Outlet />
     </div>
   );
 }
@@ -47,6 +60,12 @@ function AdminRoute() {
 // Route definitions
 const rootRoute = createRootRoute({
   component: RootLayout,
+});
+
+const minimalLayoutRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  id: "minimal",
+  component: MinimalLayout,
 });
 
 const indexRoute = createRoute({
@@ -103,6 +122,25 @@ const adminRoute = createRoute({
   component: AdminRoute,
 });
 
+// Student portal routes use minimal layout (no navbar/footer)
+const studentPortalRoute = createRoute({
+  getParentRoute: () => minimalLayoutRoute,
+  path: "/admission/apply",
+  component: StudentPortalPage,
+});
+
+const applicationFormRoute = createRoute({
+  getParentRoute: () => minimalLayoutRoute,
+  path: "/admission/form",
+  component: ApplicationFormPage,
+});
+
+const applicationStatusRoute = createRoute({
+  getParentRoute: () => minimalLayoutRoute,
+  path: "/admission/status",
+  component: ApplicationStatusPage,
+});
+
 const routeTree = rootRoute.addChildren([
   indexRoute,
   staffRoute,
@@ -113,6 +151,11 @@ const routeTree = rootRoute.addChildren([
   galleryRoute,
   adminLoginRoute,
   adminRoute,
+  minimalLayoutRoute.addChildren([
+    studentPortalRoute,
+    applicationFormRoute,
+    applicationStatusRoute,
+  ]),
 ]);
 
 const router = createRouter({ routeTree });

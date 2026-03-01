@@ -38,6 +38,28 @@ export interface FeesStructure {
     notes: string;
     category: string;
 }
+export interface AdmissionApplication {
+    id: number;
+    status: ApplicationStatus;
+    applicantName: string;
+    institutionName: string;
+    dateOfBirth: string;
+    annualIncome: string;
+    submittedAt: Time;
+    photoUrl: string;
+    reviewNote: string;
+    applicantMobile: string;
+    reviewedAt?: Time;
+    district: string;
+    state: string;
+    fatherName: string;
+    address: string;
+    incomeCertUrl: string;
+    category: string;
+    pinCode: string;
+    classYear: string;
+    casteCertUrl: string;
+}
 export interface UserProfile {
     name: string;
 }
@@ -51,6 +73,11 @@ export interface Student {
     category: string;
     classLevel: string;
 }
+export enum ApplicationStatus {
+    pending = "pending",
+    approved = "approved",
+    rejected = "rejected"
+}
 export enum UserRole {
     admin = "admin",
     user = "user",
@@ -61,7 +88,9 @@ export interface backendInterface {
     addOrUpdateGalleryImage(image: GalleryImage): Promise<void>;
     addOrUpdateStaff(staffMember: StaffMember): Promise<void>;
     addOrUpdateStudent(student: Student): Promise<void>;
+    approveApplication(id: number, note: string): Promise<void>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
+    getAllApplications(): Promise<Array<AdmissionApplication>>;
     getAllFees(): Promise<Array<FeesStructure>>;
     getAllGalleryImages(): Promise<Array<GalleryImage>>;
     getAllStaff(): Promise<Array<StaffMember>>;
@@ -70,15 +99,20 @@ export interface backendInterface {
     getCallerUserRole(): Promise<UserRole>;
     getFees(id: number): Promise<FeesStructure>;
     getGalleryImage(id: number): Promise<GalleryImage>;
+    getMyApplication(mobile: string): Promise<AdmissionApplication>;
     getSiteSettings(): Promise<SiteSettings>;
     getStaffMember(id: number): Promise<StaffMember>;
     getStudent(id: number): Promise<Student>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     isCallerAdmin(): Promise<boolean>;
+    loginApplicant(mobile: string, pin: string): Promise<void>;
+    registerApplicant(mobile: string, pin: string, name: string): Promise<void>;
+    rejectApplication(id: number, note: string): Promise<void>;
     removeFees(id: number): Promise<void>;
     removeGalleryImage(id: number): Promise<void>;
     removeStaff(id: number): Promise<void>;
     removeStudent(id: number): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
+    submitApplication(applicationRequest: AdmissionApplication): Promise<number>;
     updateSiteSettings(newSettings: SiteSettings): Promise<void>;
 }

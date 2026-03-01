@@ -10,6 +10,31 @@ import type { ActorMethod } from '@icp-sdk/core/agent';
 import type { IDL } from '@icp-sdk/core/candid';
 import type { Principal } from '@icp-sdk/core/principal';
 
+export interface AdmissionApplication {
+  'id' : number,
+  'status' : ApplicationStatus,
+  'applicantName' : string,
+  'institutionName' : string,
+  'dateOfBirth' : string,
+  'annualIncome' : string,
+  'submittedAt' : Time,
+  'photoUrl' : string,
+  'reviewNote' : string,
+  'applicantMobile' : string,
+  'reviewedAt' : [] | [Time],
+  'district' : string,
+  'state' : string,
+  'fatherName' : string,
+  'address' : string,
+  'incomeCertUrl' : string,
+  'category' : string,
+  'pinCode' : string,
+  'classYear' : string,
+  'casteCertUrl' : string,
+}
+export type ApplicationStatus = { 'pending' : null } |
+  { 'approved' : null } |
+  { 'rejected' : null };
 export interface FeesStructure {
   'id' : number,
   'period' : string,
@@ -87,7 +112,9 @@ export interface _SERVICE {
   'addOrUpdateGalleryImage' : ActorMethod<[GalleryImage], undefined>,
   'addOrUpdateStaff' : ActorMethod<[StaffMember], undefined>,
   'addOrUpdateStudent' : ActorMethod<[Student], undefined>,
+  'approveApplication' : ActorMethod<[number, string], undefined>,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
+  'getAllApplications' : ActorMethod<[], Array<AdmissionApplication>>,
   'getAllFees' : ActorMethod<[], Array<FeesStructure>>,
   'getAllGalleryImages' : ActorMethod<[], Array<GalleryImage>>,
   'getAllStaff' : ActorMethod<[], Array<StaffMember>>,
@@ -96,16 +123,21 @@ export interface _SERVICE {
   'getCallerUserRole' : ActorMethod<[], UserRole>,
   'getFees' : ActorMethod<[number], FeesStructure>,
   'getGalleryImage' : ActorMethod<[number], GalleryImage>,
+  'getMyApplication' : ActorMethod<[string], AdmissionApplication>,
   'getSiteSettings' : ActorMethod<[], SiteSettings>,
   'getStaffMember' : ActorMethod<[number], StaffMember>,
   'getStudent' : ActorMethod<[number], Student>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
+  'loginApplicant' : ActorMethod<[string, string], undefined>,
+  'registerApplicant' : ActorMethod<[string, string, string], undefined>,
+  'rejectApplication' : ActorMethod<[number, string], undefined>,
   'removeFees' : ActorMethod<[number], undefined>,
   'removeGalleryImage' : ActorMethod<[number], undefined>,
   'removeStaff' : ActorMethod<[number], undefined>,
   'removeStudent' : ActorMethod<[number], undefined>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
+  'submitApplication' : ActorMethod<[AdmissionApplication], number>,
   'updateSiteSettings' : ActorMethod<[SiteSettings], undefined>,
 }
 export declare const idlService: IDL.ServiceClass;

@@ -219,3 +219,109 @@ export function useAssignUserRole() {
     },
   });
 }
+
+// ─── Applicant Auth ───────────────────────────────────────────────────────────
+
+export function useRegisterApplicant() {
+  const { actor } = useActor();
+  return useMutation({
+    mutationFn: async ({
+      mobile,
+      pin,
+      name,
+    }: {
+      mobile: string;
+      pin: string;
+      name: string;
+    }) => {
+      if (!actor) throw new Error("Not connected");
+      return actor.registerApplicant(mobile, pin, name);
+    },
+  });
+}
+
+export function useLoginApplicant() {
+  const { actor } = useActor();
+  return useMutation({
+    mutationFn: async ({
+      mobile,
+      pin,
+    }: {
+      mobile: string;
+      pin: string;
+    }) => {
+      if (!actor) throw new Error("Not connected");
+      return actor.loginApplicant(mobile, pin);
+    },
+  });
+}
+
+// ─── Admission Applications ───────────────────────────────────────────────────
+
+import type { AdmissionApplication } from "../backend.d";
+
+export function useSubmitApplication() {
+  const { actor } = useActor();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (application: AdmissionApplication) => {
+      if (!actor) throw new Error("Not connected");
+      return actor.submitApplication(application);
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["myApplication"] }),
+  });
+}
+
+export function useGetMyApplication(mobile: string) {
+  const { actor, isFetching } = useActor();
+  return useQuery<AdmissionApplication | null>({
+    queryKey: ["myApplication", mobile],
+    queryFn: async () => {
+      if (!actor || !mobile) return null;
+      try {
+        return await actor.getMyApplication(mobile);
+      } catch {
+        return null;
+      }
+    },
+    enabled: !!actor && !isFetching && !!mobile,
+    staleTime: 30 * 1000,
+  });
+}
+
+export function useGetAllApplications() {
+  const { actor, isFetching } = useActor();
+  return useQuery<AdmissionApplication[]>({
+    queryKey: ["allApplications"],
+    queryFn: async () => {
+      if (!actor) return [];
+      return actor.getAllApplications();
+    },
+    enabled: !!actor && !isFetching,
+    staleTime: 30 * 1000,
+  });
+}
+
+export function useApproveApplication() {
+  const { actor } = useActor();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, note }: { id: number; note: string }) => {
+      if (!actor) throw new Error("Not connected");
+      return actor.approveApplication(id, note);
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["allApplications"] }),
+  });
+}
+
+export function useRejectApplication() {
+  const { actor } = useActor();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, note }: { id: number; note: string }) => {
+      if (!actor) throw new Error("Not connected");
+      return actor.rejectApplication(id, note);
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["allApplications"] }),
+  });
+}

@@ -60,6 +60,33 @@ export const UserRole = IDL.Variant({
   'user' : IDL.Null,
   'guest' : IDL.Null,
 });
+export const ApplicationStatus = IDL.Variant({
+  'pending' : IDL.Null,
+  'approved' : IDL.Null,
+  'rejected' : IDL.Null,
+});
+export const AdmissionApplication = IDL.Record({
+  'id' : IDL.Nat16,
+  'status' : ApplicationStatus,
+  'applicantName' : IDL.Text,
+  'institutionName' : IDL.Text,
+  'dateOfBirth' : IDL.Text,
+  'annualIncome' : IDL.Text,
+  'submittedAt' : Time,
+  'photoUrl' : IDL.Text,
+  'reviewNote' : IDL.Text,
+  'applicantMobile' : IDL.Text,
+  'reviewedAt' : IDL.Opt(Time),
+  'district' : IDL.Text,
+  'state' : IDL.Text,
+  'fatherName' : IDL.Text,
+  'address' : IDL.Text,
+  'incomeCertUrl' : IDL.Text,
+  'category' : IDL.Text,
+  'pinCode' : IDL.Text,
+  'classYear' : IDL.Text,
+  'casteCertUrl' : IDL.Text,
+});
 export const UserProfile = IDL.Record({ 'name' : IDL.Text });
 export const SiteSettings = IDL.Record({
   'announcementText' : IDL.Text,
@@ -99,7 +126,13 @@ export const idlService = IDL.Service({
   'addOrUpdateGalleryImage' : IDL.Func([GalleryImage], [], []),
   'addOrUpdateStaff' : IDL.Func([StaffMember], [], []),
   'addOrUpdateStudent' : IDL.Func([Student], [], []),
+  'approveApplication' : IDL.Func([IDL.Nat16, IDL.Text], [], []),
   'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
+  'getAllApplications' : IDL.Func(
+      [],
+      [IDL.Vec(AdmissionApplication)],
+      ['query'],
+    ),
   'getAllFees' : IDL.Func([], [IDL.Vec(FeesStructure)], ['query']),
   'getAllGalleryImages' : IDL.Func([], [IDL.Vec(GalleryImage)], ['query']),
   'getAllStaff' : IDL.Func([], [IDL.Vec(StaffMember)], ['query']),
@@ -108,6 +141,7 @@ export const idlService = IDL.Service({
   'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
   'getFees' : IDL.Func([IDL.Nat16], [FeesStructure], ['query']),
   'getGalleryImage' : IDL.Func([IDL.Nat16], [GalleryImage], ['query']),
+  'getMyApplication' : IDL.Func([IDL.Text], [AdmissionApplication], ['query']),
   'getSiteSettings' : IDL.Func([], [SiteSettings], ['query']),
   'getStaffMember' : IDL.Func([IDL.Nat16], [StaffMember], ['query']),
   'getStudent' : IDL.Func([IDL.Nat16], [Student], ['query']),
@@ -117,11 +151,15 @@ export const idlService = IDL.Service({
       ['query'],
     ),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
+  'loginApplicant' : IDL.Func([IDL.Text, IDL.Text], [], []),
+  'registerApplicant' : IDL.Func([IDL.Text, IDL.Text, IDL.Text], [], []),
+  'rejectApplication' : IDL.Func([IDL.Nat16, IDL.Text], [], []),
   'removeFees' : IDL.Func([IDL.Nat16], [], []),
   'removeGalleryImage' : IDL.Func([IDL.Nat16], [], []),
   'removeStaff' : IDL.Func([IDL.Nat16], [], []),
   'removeStudent' : IDL.Func([IDL.Nat16], [], []),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
+  'submitApplication' : IDL.Func([AdmissionApplication], [IDL.Nat16], []),
   'updateSiteSettings' : IDL.Func([SiteSettings], [], []),
 });
 
@@ -180,6 +218,33 @@ export const idlFactory = ({ IDL }) => {
     'user' : IDL.Null,
     'guest' : IDL.Null,
   });
+  const ApplicationStatus = IDL.Variant({
+    'pending' : IDL.Null,
+    'approved' : IDL.Null,
+    'rejected' : IDL.Null,
+  });
+  const AdmissionApplication = IDL.Record({
+    'id' : IDL.Nat16,
+    'status' : ApplicationStatus,
+    'applicantName' : IDL.Text,
+    'institutionName' : IDL.Text,
+    'dateOfBirth' : IDL.Text,
+    'annualIncome' : IDL.Text,
+    'submittedAt' : Time,
+    'photoUrl' : IDL.Text,
+    'reviewNote' : IDL.Text,
+    'applicantMobile' : IDL.Text,
+    'reviewedAt' : IDL.Opt(Time),
+    'district' : IDL.Text,
+    'state' : IDL.Text,
+    'fatherName' : IDL.Text,
+    'address' : IDL.Text,
+    'incomeCertUrl' : IDL.Text,
+    'category' : IDL.Text,
+    'pinCode' : IDL.Text,
+    'classYear' : IDL.Text,
+    'casteCertUrl' : IDL.Text,
+  });
   const UserProfile = IDL.Record({ 'name' : IDL.Text });
   const SiteSettings = IDL.Record({
     'announcementText' : IDL.Text,
@@ -219,7 +284,13 @@ export const idlFactory = ({ IDL }) => {
     'addOrUpdateGalleryImage' : IDL.Func([GalleryImage], [], []),
     'addOrUpdateStaff' : IDL.Func([StaffMember], [], []),
     'addOrUpdateStudent' : IDL.Func([Student], [], []),
+    'approveApplication' : IDL.Func([IDL.Nat16, IDL.Text], [], []),
     'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
+    'getAllApplications' : IDL.Func(
+        [],
+        [IDL.Vec(AdmissionApplication)],
+        ['query'],
+      ),
     'getAllFees' : IDL.Func([], [IDL.Vec(FeesStructure)], ['query']),
     'getAllGalleryImages' : IDL.Func([], [IDL.Vec(GalleryImage)], ['query']),
     'getAllStaff' : IDL.Func([], [IDL.Vec(StaffMember)], ['query']),
@@ -228,6 +299,11 @@ export const idlFactory = ({ IDL }) => {
     'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
     'getFees' : IDL.Func([IDL.Nat16], [FeesStructure], ['query']),
     'getGalleryImage' : IDL.Func([IDL.Nat16], [GalleryImage], ['query']),
+    'getMyApplication' : IDL.Func(
+        [IDL.Text],
+        [AdmissionApplication],
+        ['query'],
+      ),
     'getSiteSettings' : IDL.Func([], [SiteSettings], ['query']),
     'getStaffMember' : IDL.Func([IDL.Nat16], [StaffMember], ['query']),
     'getStudent' : IDL.Func([IDL.Nat16], [Student], ['query']),
@@ -237,11 +313,15 @@ export const idlFactory = ({ IDL }) => {
         ['query'],
       ),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
+    'loginApplicant' : IDL.Func([IDL.Text, IDL.Text], [], []),
+    'registerApplicant' : IDL.Func([IDL.Text, IDL.Text, IDL.Text], [], []),
+    'rejectApplication' : IDL.Func([IDL.Nat16, IDL.Text], [], []),
     'removeFees' : IDL.Func([IDL.Nat16], [], []),
     'removeGalleryImage' : IDL.Func([IDL.Nat16], [], []),
     'removeStaff' : IDL.Func([IDL.Nat16], [], []),
     'removeStudent' : IDL.Func([IDL.Nat16], [], []),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
+    'submitApplication' : IDL.Func([AdmissionApplication], [IDL.Nat16], []),
     'updateSiteSettings' : IDL.Func([SiteSettings], [], []),
   });
 };

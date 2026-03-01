@@ -229,52 +229,60 @@ export default function StaffPage() {
     .sort((a, b) => Number(a.order) - Number(b.order));
 
   return (
-    <div className="py-12">
-      <div className="container mx-auto px-4">
-        {/* Header */}
+    <div>
+      {/* Page Hero Banner */}
+      <div className="hero-pattern py-12 px-4">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-12"
+          className="container mx-auto text-center"
         >
-          <Badge className="bg-primary/10 text-primary mb-4 font-body text-xs px-3 py-1 border-primary/20">
-            Our Team
-          </Badge>
-          <h1 className="font-display font-bold text-4xl text-foreground mb-3">
+          <div className="flex items-center justify-center gap-3 mb-4">
+            <div className="gold-rule w-8" />
+            <span className="font-body text-[11px] tracking-[0.18em] uppercase text-[oklch(var(--saffron))] font-semibold">
+              Our Team
+            </span>
+            <div className="gold-rule w-8" />
+          </div>
+          <h1 className="font-serif font-bold text-4xl md:text-5xl text-white mb-3 tracking-tight">
             Staff Members
           </h1>
-          <p className="text-muted-foreground font-body max-w-md mx-auto text-sm">
+          <p className="text-white/60 font-body max-w-md mx-auto text-sm leading-relaxed">
             Dedicated professionals committed to the welfare and academic
             success of our students.
           </p>
         </motion.div>
+      </div>
 
-        {isLoading ? (
-          <div className="space-y-6">
-            <Skeleton className="h-56 w-full rounded-xl" />
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[1, 2, 3].map((i) => (
-                <Skeleton key={i} className="h-64 rounded-xl" />
-              ))}
+      <div className="py-10">
+        <div className="container mx-auto px-4">
+          {isLoading ? (
+            <div className="space-y-6">
+              <Skeleton className="h-56 w-full rounded-xl" />
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {[1, 2, 3].map((i) => (
+                  <Skeleton key={i} className="h-64 rounded-xl" />
+                ))}
+              </div>
             </div>
-          </div>
-        ) : (
-          <>
-            {superintendent && <SuperintendentCard member={superintendent} />}
-            {otherStaff.length > 0 && (
-              <>
-                <h2 className="font-display font-semibold text-xl text-foreground mb-6 pb-2 border-b border-border">
-                  Support Staff
-                </h2>
-                <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                  {otherStaff.map((member, i) => (
-                    <StaffCard key={member.id} member={member} index={i} />
-                  ))}
-                </div>
-              </>
-            )}
-          </>
-        )}
+          ) : (
+            <>
+              {superintendent && <SuperintendentCard member={superintendent} />}
+              {otherStaff.length > 0 && (
+                <>
+                  <h2 className="font-display font-semibold text-xl text-foreground mb-6 pb-2 border-b border-border">
+                    Support Staff
+                  </h2>
+                  <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    {otherStaff.map((member, i) => (
+                      <StaffCard key={member.id} member={member} index={i} />
+                    ))}
+                  </div>
+                </>
+              )}
+            </>
+          )}
+        </div>
       </div>
     </div>
   );
