@@ -90,6 +90,7 @@ export interface backendInterface {
     addOrUpdateStudent(student: Student): Promise<void>;
     approveApplication(id: number, note: string): Promise<void>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
+    bulkAddStudents(newStudents: Array<Student>): Promise<void>;
     getAllApplications(): Promise<Array<AdmissionApplication>>;
     getAllFees(): Promise<Array<FeesStructure>>;
     getAllGalleryImages(): Promise<Array<GalleryImage>>;

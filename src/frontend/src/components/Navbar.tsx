@@ -21,8 +21,88 @@ export default function Navbar() {
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname.startsWith(href);
 
+  const leaders = [
+    {
+      img: "/assets/generated/india-pm.dim_200x200.jpg",
+      name: "Shri Narendra Modi",
+      role: "Prime Minister of India",
+    },
+    {
+      img: "/assets/generated/minority-minister.dim_200x200.jpg",
+      name: "Shri Kiren Rijiju",
+      role: "Minister of Minority Affairs",
+    },
+    {
+      img: "/assets/uploads/images-88--1.jpeg",
+      name: "Shri Mohan Charan Majhi",
+      role: "Chief Minister of Odisha",
+    },
+    {
+      img: "/assets/generated/obc-director-jugaleswari-dash.dim_300x300.jpg",
+      name: "Smt Jugaleswari Dash",
+      role: "OBC Director, Odisha",
+    },
+  ];
+
   return (
     <header className="sticky top-0 z-50 nav-glass">
+      {/* Leaders top bar */}
+      <div
+        className="border-b py-1.5 px-4"
+        style={{
+          background:
+            "linear-gradient(90deg, oklch(0.12 0.07 260 / 0.98) 0%, oklch(0.16 0.08 258 / 0.98) 100%)",
+          borderColor: "oklch(0.72 0.18 58 / 0.2)",
+        }}
+      >
+        <div className="container mx-auto flex items-center justify-center gap-1 sm:gap-6 overflow-x-auto scrollbar-none">
+          {leaders.map((leader) => (
+            <div
+              key={leader.name}
+              className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0"
+            >
+              <div
+                className="w-7 h-7 rounded-full overflow-hidden border-2 flex-shrink-0"
+                style={{ borderColor: "oklch(0.72 0.18 58 / 0.6)" }}
+              >
+                <img
+                  src={leader.img}
+                  alt={leader.name}
+                  className="w-full h-full object-cover object-top"
+                />
+              </div>
+              <div className="hidden sm:block leading-none">
+                <p
+                  className="text-[10px] font-display font-semibold leading-tight"
+                  style={{ color: "oklch(0.95 0.01 240)" }}
+                >
+                  {leader.name}
+                </p>
+                <p
+                  className="text-[9px] font-body leading-tight"
+                  style={{ color: "oklch(0.72 0.18 58 / 0.8)" }}
+                >
+                  {leader.role}
+                </p>
+              </div>
+              {/* Mobile: name only */}
+              <p
+                className="sm:hidden text-[9px] font-body"
+                style={{ color: "oklch(0.72 0.18 58 / 0.85)" }}
+              >
+                {leader.name.replace("Shri ", "").replace("Smt ", "")}
+              </p>
+              <span
+                className="text-[oklch(0.72_0.18_58/0.25)] text-xs last:hidden"
+                aria-hidden
+              >
+                |
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* Top strip — tighter, more refined */}
       <div className="border-b border-white/5 py-1 px-4 text-center text-[11px] tracking-wider font-body text-white/45 uppercase">
         Government of Odisha &nbsp;·&nbsp; SC &amp; ST Development, Minorities

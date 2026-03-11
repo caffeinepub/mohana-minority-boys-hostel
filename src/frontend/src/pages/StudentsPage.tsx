@@ -1,4 +1,5 @@
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -10,83 +11,80 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { GraduationCap, Search, Users } from "lucide-react";
+import { Download, GraduationCap, Printer, Search, Users } from "lucide-react";
 import { motion } from "motion/react";
 import { useMemo, useState } from "react";
 import type { Student } from "../backend.d";
 import { useGetAllStudents } from "../hooks/useQueries";
 
+function downloadStudentsCSV(students: Student[]) {
+  const header = [
+    "S.No.",
+    "Name",
+    "Class",
+    "College/University",
+    "Registration No.",
+    "Mobile",
+    "Remarks",
+  ];
+  const rows = students.map((s, i) => [
+    String(i + 1),
+    s.name,
+    s.classLevel,
+    s.fatherName,
+    s.rollNumber,
+    s.year,
+    s.category,
+  ]);
+  const csvContent = [header, ...rows]
+    .map((row) =>
+      row
+        .map((cell) => `"${String(cell ?? "").replace(/"/g, '""')}"`)
+        .join(","),
+    )
+    .join("\n");
+
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "students.csv";
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 const FALLBACK_STUDENTS: Student[] = [
   {
     id: 1,
     name: "Mohammed Arif Khan",
-    fatherName: "Abdul Karim Khan",
-    classLevel: "Class 11 (Science)",
-    rollNumber: "MS-2025-001",
-    year: "2025",
-    category: "Muslim",
+    fatherName: "Khallikote University",
+    classLevel: "B.A. 1st Year",
+    rollNumber: "PMMB-2025-001",
+    year: "9876543210",
+    category: "—",
     admissionDate: "2025-06-15",
   },
   {
     id: 2,
     name: "David Prakash Nayak",
-    fatherName: "Samuel Nayak",
-    classLevel: "Class 12 (Commerce)",
-    rollNumber: "MS-2025-002",
-    year: "2025",
-    category: "Christian",
+    fatherName: "Berhampur University",
+    classLevel: "B.Sc. 2nd Year",
+    rollNumber: "PMMB-2025-002",
+    year: "9876543211",
+    category: "—",
     admissionDate: "2025-06-15",
   },
   {
     id: 3,
     name: "Gurpreet Singh",
-    fatherName: "Harjinder Singh",
-    classLevel: "B.Sc. 1st Year",
-    rollNumber: "MS-2025-003",
-    year: "2025",
-    category: "Sikh",
-    admissionDate: "2025-07-01",
-  },
-  {
-    id: 4,
-    name: "Rahul Islam",
-    fatherName: "Md. Nazrul Islam",
-    classLevel: "Class 11 (Arts)",
-    rollNumber: "MS-2025-004",
-    year: "2025",
-    category: "Muslim",
-    admissionDate: "2025-07-01",
-  },
-  {
-    id: 5,
-    name: "Thomas John",
-    fatherName: "Jacob John",
-    classLevel: "B.A. 2nd Year",
-    rollNumber: "MS-2025-005",
-    year: "2025",
-    category: "Christian",
-    admissionDate: "2025-07-10",
-  },
-  {
-    id: 6,
-    name: "Sanjay Ansari",
-    fatherName: "Md. Hakim Ansari",
+    fatherName: "GIET College Gunupur",
     classLevel: "Class 12 (Science)",
-    rollNumber: "MS-2025-006",
-    year: "2025",
-    category: "Muslim",
-    admissionDate: "2025-07-12",
+    rollNumber: "PMMB-2025-003",
+    year: "9876543212",
+    category: "Merit student",
+    admissionDate: "2025-07-01",
   },
 ];
-
-const categoryColors: Record<string, string> = {
-  Muslim: "bg-green-50 text-green-700 border-green-200",
-  Christian: "bg-blue-50 text-blue-700 border-blue-200",
-  Sikh: "bg-orange-50 text-orange-700 border-orange-200",
-  Buddhist: "bg-yellow-50 text-yellow-700 border-yellow-200",
-  Parsi: "bg-purple-50 text-purple-700 border-purple-200",
-  Jain: "bg-pink-50 text-pink-700 border-pink-200",
-};
 
 export default function StudentsPage() {
   const { data: studentsData, isLoading } = useGetAllStudents();
@@ -104,6 +102,7 @@ export default function StudentsPage() {
         s.classLevel.toLowerCase().includes(q) ||
         s.rollNumber.toLowerCase().includes(q) ||
         s.fatherName.toLowerCase().includes(q) ||
+        s.year.toLowerCase().includes(q) ||
         s.category.toLowerCase().includes(q),
     );
   }, [students, search]);
@@ -129,7 +128,7 @@ export default function StudentsPage() {
         </motion.div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-2 gap-4 mb-8 max-w-sm mx-auto sm:max-w-none sm:grid-cols-2 md:w-fit md:mx-0">
           {[
             {
               label: "Total Enrolled",
@@ -138,24 +137,10 @@ export default function StudentsPage() {
               color: "text-primary",
             },
             {
-              label: "Muslim",
-              value: students.filter((s) => s.category === "Muslim").length,
+              label: "With Class Info",
+              value: students.filter((s) => !!s.classLevel).length,
               icon: GraduationCap,
               color: "text-green-600",
-            },
-            {
-              label: "Christian",
-              value: students.filter((s) => s.category === "Christian").length,
-              icon: GraduationCap,
-              color: "text-blue-600",
-            },
-            {
-              label: "Other Communities",
-              value: students.filter(
-                (s) => !["Muslim", "Christian"].includes(s.category),
-              ).length,
-              icon: GraduationCap,
-              color: "text-orange-600",
             },
           ].map((stat, i) => (
             <motion.div
@@ -181,15 +166,39 @@ export default function StudentsPage() {
           ))}
         </div>
 
-        {/* Search */}
-        <div className="relative mb-6 max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            placeholder="Search by name, class, roll number..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 font-body text-sm"
-          />
+        {/* Search + Actions */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-6">
+          <div className="relative flex-1 max-w-md w-full">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="Search by name, class, registration no., mobile..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-9 font-body text-sm"
+            />
+          </div>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => downloadStudentsCSV(filtered)}
+              className="font-body text-xs gap-1.5"
+              data-ocid="students.download_button"
+            >
+              <Download className="w-3.5 h-3.5" />
+              Download List
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => window.print()}
+              className="font-body text-xs gap-1.5"
+              data-ocid="students.print_button"
+            >
+              <Printer className="w-3.5 h-3.5" />
+              Print
+            </Button>
+          </div>
         </div>
 
         {/* Table */}
@@ -215,23 +224,20 @@ export default function StudentsPage() {
                     <TableHead className="font-display font-semibold text-xs text-foreground">
                       Name
                     </TableHead>
-                    <TableHead className="font-display font-semibold text-xs text-foreground hidden md:table-cell">
-                      Father's Name
-                    </TableHead>
                     <TableHead className="font-display font-semibold text-xs text-foreground hidden sm:table-cell">
                       Class
                     </TableHead>
-                    <TableHead className="font-display font-semibold text-xs text-foreground hidden lg:table-cell">
-                      Roll Number
+                    <TableHead className="font-display font-semibold text-xs text-foreground hidden md:table-cell">
+                      College/University
                     </TableHead>
                     <TableHead className="font-display font-semibold text-xs text-foreground hidden lg:table-cell">
-                      Year
+                      Registration No.
                     </TableHead>
-                    <TableHead className="font-display font-semibold text-xs text-foreground">
-                      Community
+                    <TableHead className="font-display font-semibold text-xs text-foreground hidden lg:table-cell">
+                      Mobile
                     </TableHead>
                     <TableHead className="font-display font-semibold text-xs text-foreground hidden xl:table-cell">
-                      Admission Date
+                      Remarks
                     </TableHead>
                   </TableRow>
                 </TableHeader>
@@ -239,54 +245,41 @@ export default function StudentsPage() {
                   {filtered.length === 0 ? (
                     <TableRow>
                       <TableCell
-                        colSpan={8}
+                        colSpan={7}
                         className="text-center py-10 text-muted-foreground font-body text-sm"
                       >
                         No students found matching your search.
                       </TableCell>
                     </TableRow>
                   ) : (
-                    filtered.map((student, i) => {
-                      const catColor =
-                        categoryColors[student.category] ??
-                        "bg-muted text-muted-foreground border-border";
-                      return (
-                        <TableRow
-                          key={student.id}
-                          className="hover:bg-muted/30 transition-colors"
-                        >
-                          <TableCell className="text-xs text-muted-foreground font-body">
-                            {i + 1}
-                          </TableCell>
-                          <TableCell className="font-body font-medium text-sm text-foreground">
-                            {student.name}
-                          </TableCell>
-                          <TableCell className="text-xs text-muted-foreground font-body hidden md:table-cell">
-                            {student.fatherName}
-                          </TableCell>
-                          <TableCell className="text-xs text-foreground font-body hidden sm:table-cell">
-                            {student.classLevel}
-                          </TableCell>
-                          <TableCell className="text-xs text-muted-foreground font-mono hidden lg:table-cell">
-                            {student.rollNumber}
-                          </TableCell>
-                          <TableCell className="text-xs text-muted-foreground font-body hidden lg:table-cell">
-                            {student.year}
-                          </TableCell>
-                          <TableCell>
-                            <Badge
-                              variant="outline"
-                              className={`text-xs font-body ${catColor}`}
-                            >
-                              {student.category}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-xs text-muted-foreground font-body hidden xl:table-cell">
-                            {student.admissionDate}
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })
+                    filtered.map((student, i) => (
+                      <TableRow
+                        key={student.id}
+                        className="hover:bg-muted/30 transition-colors"
+                      >
+                        <TableCell className="text-xs text-muted-foreground font-body">
+                          {i + 1}
+                        </TableCell>
+                        <TableCell className="font-body font-medium text-sm text-foreground">
+                          {student.name}
+                        </TableCell>
+                        <TableCell className="text-xs text-foreground font-body hidden sm:table-cell">
+                          {student.classLevel || "—"}
+                        </TableCell>
+                        <TableCell className="text-xs text-muted-foreground font-body hidden md:table-cell">
+                          {student.fatherName || "—"}
+                        </TableCell>
+                        <TableCell className="text-xs text-muted-foreground font-mono hidden lg:table-cell">
+                          {student.rollNumber || "—"}
+                        </TableCell>
+                        <TableCell className="text-xs text-muted-foreground font-body hidden lg:table-cell">
+                          {student.year || "—"}
+                        </TableCell>
+                        <TableCell className="text-xs text-muted-foreground font-body hidden xl:table-cell">
+                          {student.category || "—"}
+                        </TableCell>
+                      </TableRow>
+                    ))
                   )}
                 </TableBody>
               </Table>

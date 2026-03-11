@@ -114,6 +114,7 @@ export interface _SERVICE {
   'addOrUpdateStudent' : ActorMethod<[Student], undefined>,
   'approveApplication' : ActorMethod<[number, string], undefined>,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
+  'bulkAddStudents' : ActorMethod<[Array<Student>], undefined>,
   'getAllApplications' : ActorMethod<[], Array<AdmissionApplication>>,
   'getAllFees' : ActorMethod<[], Array<FeesStructure>>,
   'getAllGalleryImages' : ActorMethod<[], Array<GalleryImage>>,

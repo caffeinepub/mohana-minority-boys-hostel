@@ -33,6 +33,7 @@ import { Link } from "@tanstack/react-router";
 import {
   CheckCircle2,
   ClipboardList,
+  Download,
   Eye,
   GraduationCap,
   Home,
@@ -42,6 +43,7 @@ import {
   LogOut,
   Pencil,
   Plus,
+  Printer,
   Settings,
   ShieldCheck,
   ShieldOff,
@@ -52,8 +54,9 @@ import {
   X,
   XCircle,
 } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
+// xlsx is loaded dynamically at runtime via CDN (not a bundled dependency)
 import type {
   AdmissionApplication,
   FeesStructure,
@@ -71,6 +74,7 @@ import {
   useAddOrUpdateStudent,
   useApproveApplication,
   useAssignUserRole,
+  useBulkAddStudents,
   useGetAllApplications,
   useGetAllFees,
   useGetAllGalleryImages,
@@ -480,19 +484,232 @@ const emptyStudent: Student = {
   fatherName: "",
   classLevel: "",
   rollNumber: "",
-  year: new Date().getFullYear().toString(),
-  category: "Muslim",
+  year: "",
+  category: "—",
   admissionDate: new Date().toISOString().split("T")[0],
 };
+
+// ── Excel column header normalizer ──────────────────────────────────────────
+
+function normalizeHeader(h: string): string {
+  return h
+    .trim()
+    .toLowerCase()
+    .replace(/[\s/()]+/g, " ");
+}
+
+function findCol(headers: string[], candidates: string[]): number {
+  for (const cand of candidates) {
+    const norm = cand.toLowerCase();
+    const idx = headers.findIndex((h) => h === norm);
+    if (idx !== -1) return idx;
+  }
+  return -1;
+}
+
+interface ParsedExcelRow {
+  serial: string;
+  name: string;
+  classLevel: string;
+  college: string;
+  regNo: string;
+  mobile: string;
+  remarks: string;
+}
+
+// Minimal xlsx type shim for dynamic import
+type XLSXModule = {
+  read: (
+    data: unknown,
+    opts?: { type?: string },
+  ) => {
+    SheetNames: string[];
+    Sheets: { [key: string]: unknown };
+  };
+  utils: {
+    sheet_to_json: (
+      sheet: unknown,
+      opts?: { header?: number; defval?: string },
+    ) => unknown[];
+  };
+};
+
+function parseExcelFile(file: File): Promise<ParsedExcelRow[]> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        const data = e.target?.result;
+        if (!data) throw new Error("Could not read file");
+
+        // Dynamically load xlsx from CDN to avoid bundler issues
+        let XLSX: XLSXModule;
+        if ((window as unknown as { XLSX?: XLSXModule }).XLSX) {
+          XLSX = (window as unknown as { XLSX: XLSXModule }).XLSX;
+        } else {
+          await new Promise<void>((res, rej) => {
+            const s = document.createElement("script");
+            s.src =
+              "https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js";
+            s.onload = () => res();
+            s.onerror = () => rej(new Error("Failed to load xlsx library"));
+            document.head.appendChild(s);
+          });
+          XLSX = (window as unknown as { XLSX: XLSXModule }).XLSX;
+        }
+
+        const workbook = XLSX.read(data, { type: "binary" });
+        const sheetName = workbook.SheetNames[0];
+        if (!sheetName) throw new Error("No sheets found in file");
+        const sheet = workbook.Sheets[sheetName];
+        const rows: string[][] = XLSX.utils.sheet_to_json(sheet, {
+          header: 1,
+          defval: "",
+        }) as string[][];
+
+        if (rows.length < 2) throw new Error("File has no data rows");
+
+        const rawHeaders = rows[0].map((h) => normalizeHeader(String(h ?? "")));
+
+        const serialIdx = findCol(rawHeaders, [
+          "serial no",
+          "serial number",
+          "s no",
+          "s.no",
+          "sl no",
+          "sl. no",
+          "sno",
+          "sr no",
+        ]);
+        const nameIdx = findCol(rawHeaders, [
+          "name",
+          "name of the students",
+          "student name",
+        ]);
+        const classIdx = findCol(rawHeaders, [
+          "class",
+          "class level",
+          "course",
+        ]);
+        const collegeIdx = findCol(rawHeaders, [
+          "college",
+          "college or university name",
+          "college university",
+          "university",
+          "institution",
+          "institution name",
+        ]);
+        const regIdx = findCol(rawHeaders, [
+          "registration no",
+          "hostel admission registration number",
+          "reg no",
+          "reg. no",
+          "registration number",
+          "admission no",
+          "admission number",
+        ]);
+        const mobileIdx = findCol(rawHeaders, [
+          "mobile",
+          "mobile number",
+          "phone",
+          "phone number",
+          "contact",
+          "contact no",
+        ]);
+        const remarksIdx = findCol(rawHeaders, [
+          "remarks",
+          "remark",
+          "note",
+          "notes",
+        ]);
+
+        if (nameIdx === -1) {
+          throw new Error(
+            'Could not find "Name" column. Please check your Excel headers.',
+          );
+        }
+
+        const parsed: ParsedExcelRow[] = [];
+        for (let i = 1; i < rows.length; i++) {
+          const row = rows[i];
+          const name = String(row[nameIdx] ?? "").trim();
+          if (!name) continue; // skip empty rows
+          parsed.push({
+            serial:
+              serialIdx >= 0 ? String(row[serialIdx] ?? "").trim() : String(i),
+            name,
+            classLevel: classIdx >= 0 ? String(row[classIdx] ?? "").trim() : "",
+            college:
+              collegeIdx >= 0 ? String(row[collegeIdx] ?? "").trim() : "",
+            regNo: regIdx >= 0 ? String(row[regIdx] ?? "").trim() : "",
+            mobile: mobileIdx >= 0 ? String(row[mobileIdx] ?? "").trim() : "",
+            remarks:
+              remarksIdx >= 0 ? String(row[remarksIdx] ?? "").trim() : "",
+          });
+        }
+
+        if (parsed.length === 0)
+          throw new Error("No valid student rows found in file");
+        resolve(parsed);
+      } catch (err) {
+        reject(err);
+      }
+    };
+    reader.onerror = () => reject(new Error("Failed to read file"));
+    reader.readAsBinaryString(file);
+  });
+}
+
+function downloadStudentsCSVAdmin(students: Student[]) {
+  const header = [
+    "S.No.",
+    "Name",
+    "Class",
+    "College/University",
+    "Registration No.",
+    "Mobile",
+    "Remarks",
+  ];
+  const rows = students.map((s, i) => [
+    String(i + 1),
+    s.name,
+    s.classLevel,
+    s.fatherName,
+    s.rollNumber,
+    s.year,
+    s.category,
+  ]);
+  const csvContent = [header, ...rows]
+    .map((row) =>
+      row
+        .map((cell) => `"${String(cell ?? "").replace(/"/g, '""')}"`)
+        .join(","),
+    )
+    .join("\n");
+
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "students.csv";
+  a.click();
+  URL.revokeObjectURL(url);
+}
 
 function StudentsManagement() {
   const { data: students = [], isLoading } = useGetAllStudents();
   const addOrUpdate = useAddOrUpdateStudent();
   const remove = useRemoveStudent();
+  const bulkAdd = useBulkAddStudents();
 
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<Student>(emptyStudent);
   const [deleteId, setDeleteId] = useState<number | null>(null);
+
+  // Excel upload state
+  const [parsedRows, setParsedRows] = useState<ParsedExcelRow[]>([]);
+  const [xlFile, setXlFile] = useState<File | null>(null);
+  const xlInputRef = useRef<HTMLInputElement>(null);
 
   const openAdd = () => {
     setEditing({ ...emptyStudent, id: safeId() });
@@ -520,6 +737,56 @@ function StudentsManagement() {
     setDeleteId(null);
   };
 
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setXlFile(file);
+    try {
+      const rows = await parseExcelFile(file);
+      setParsedRows(rows);
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Failed to parse Excel file",
+      );
+      setParsedRows([]);
+      setXlFile(null);
+      if (xlInputRef.current) xlInputRef.current.value = "";
+    }
+  };
+
+  const handleImport = async () => {
+    if (parsedRows.length === 0) return;
+    const today = new Date().toISOString().split("T")[0];
+    const newStudents: Student[] = parsedRows.map((row, index) => ({
+      id: ((Date.now() % 60000) + (index % 5000) + 1) % 65534 || 1,
+      name: row.name,
+      classLevel: row.classLevel,
+      fatherName: row.college,
+      rollNumber: row.regNo,
+      year: row.mobile,
+      category: row.remarks || "—",
+      admissionDate: today,
+    }));
+
+    try {
+      await bulkAdd.mutateAsync(newStudents);
+      toast.success(
+        `${newStudents.length} student${newStudents.length !== 1 ? "s" : ""} imported successfully!`,
+      );
+      setParsedRows([]);
+      setXlFile(null);
+      if (xlInputRef.current) xlInputRef.current.value = "";
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Import failed. Please try again.",
+      );
+    }
+  };
+
+  const PREVIEW_LIMIT = 5;
+  const previewRows = parsedRows.slice(0, PREVIEW_LIMIT);
+  const extraCount = parsedRows.length - PREVIEW_LIMIT;
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -531,13 +798,180 @@ function StudentsManagement() {
             {students.length} enrolled
           </p>
         </div>
-        <Button
-          onClick={openAdd}
-          className="bg-primary text-primary-foreground font-body gap-2"
-        >
-          <Plus className="w-4 h-4" /> Add Student
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => downloadStudentsCSVAdmin(students)}
+            className="font-body text-xs gap-1.5"
+            data-ocid="admin.students.download_button"
+          >
+            <Download className="w-3.5 h-3.5" />
+            Download CSV
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => window.print()}
+            className="font-body text-xs gap-1.5"
+            data-ocid="admin.students.print_button"
+          >
+            <Printer className="w-3.5 h-3.5" />
+            Print
+          </Button>
+          <Button
+            onClick={openAdd}
+            className="bg-primary text-primary-foreground font-body gap-2"
+          >
+            <Plus className="w-4 h-4" /> Add Student
+          </Button>
+        </div>
       </div>
+
+      {/* ── Excel Upload Card ────────────────────────────────────────────── */}
+      <Card className="border-border bg-muted/20">
+        <CardHeader className="pb-3">
+          <CardTitle className="font-display text-base flex items-center gap-2">
+            <Upload className="w-4 h-4 text-primary" />
+            Import Students from Excel
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-1.5">
+            <Label className="font-body text-sm">
+              Excel File (.xlsx, .xls, .csv)
+            </Label>
+            <div className="flex items-center gap-3 flex-wrap">
+              <Input
+                ref={xlInputRef}
+                type="file"
+                accept=".xlsx,.xls,.csv"
+                onChange={handleFileSelect}
+                className="font-body text-sm cursor-pointer max-w-xs"
+              />
+              {xlFile && (
+                <span className="text-xs text-muted-foreground font-body truncate max-w-[200px]">
+                  {xlFile.name}
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground font-body">
+              Required columns:{" "}
+              <span className="font-medium text-foreground">Name</span>, Class,
+              College/University, Registration No., Mobile, Remarks. Data will
+              be appended to existing students.
+            </p>
+          </div>
+
+          {parsedRows.length > 0 && (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-body font-medium text-foreground">
+                  Preview —{" "}
+                  <span className="text-primary">{parsedRows.length} rows</span>{" "}
+                  ready to import
+                </p>
+              </div>
+              <div className="rounded-lg border border-border overflow-hidden">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-muted/60 hover:bg-muted/60">
+                      <TableHead className="font-display text-xs font-semibold w-10">
+                        S.No
+                      </TableHead>
+                      <TableHead className="font-display text-xs font-semibold">
+                        Name
+                      </TableHead>
+                      <TableHead className="font-display text-xs font-semibold hidden sm:table-cell">
+                        Class
+                      </TableHead>
+                      <TableHead className="font-display text-xs font-semibold hidden md:table-cell">
+                        College/University
+                      </TableHead>
+                      <TableHead className="font-display text-xs font-semibold hidden lg:table-cell">
+                        Reg. No.
+                      </TableHead>
+                      <TableHead className="font-display text-xs font-semibold hidden lg:table-cell">
+                        Mobile
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {previewRows.map((row, i) => (
+                      <TableRow
+                        key={`preview-${row.name}-${row.regNo || String(i)}`}
+                        className="hover:bg-muted/30"
+                      >
+                        <TableCell className="text-xs text-muted-foreground font-body">
+                          {row.serial || i + 1}
+                        </TableCell>
+                        <TableCell className="font-body font-medium text-sm">
+                          {row.name}
+                        </TableCell>
+                        <TableCell className="text-xs font-body hidden sm:table-cell">
+                          {row.classLevel || "—"}
+                        </TableCell>
+                        <TableCell className="text-xs font-body text-muted-foreground hidden md:table-cell truncate max-w-[160px]">
+                          {row.college || "—"}
+                        </TableCell>
+                        <TableCell className="text-xs font-mono text-muted-foreground hidden lg:table-cell">
+                          {row.regNo || "—"}
+                        </TableCell>
+                        <TableCell className="text-xs font-body text-muted-foreground hidden lg:table-cell">
+                          {row.mobile || "—"}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    {extraCount > 0 && (
+                      <TableRow>
+                        <TableCell
+                          colSpan={6}
+                          className="text-center py-2 text-xs text-muted-foreground font-body italic"
+                        >
+                          … and {extraCount} more row
+                          {extraCount !== 1 ? "s" : ""}
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+              <div className="flex gap-3 items-center">
+                <Button
+                  onClick={handleImport}
+                  disabled={bulkAdd.isPending}
+                  className="bg-primary text-primary-foreground font-body gap-2"
+                >
+                  {bulkAdd.isPending ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Importing…
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="w-4 h-4" />
+                      Import {parsedRows.length} Student
+                      {parsedRows.length !== 1 ? "s" : ""}
+                    </>
+                  )}
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setParsedRows([]);
+                    setXlFile(null);
+                    if (xlInputRef.current) xlInputRef.current.value = "";
+                  }}
+                  className="font-body text-xs text-muted-foreground"
+                >
+                  <X className="w-3.5 h-3.5 mr-1" /> Clear
+                </Button>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {isLoading ? (
         <div className="flex items-center gap-2">
@@ -547,85 +981,97 @@ function StudentsManagement() {
           </span>
         </div>
       ) : (
-        <div className="rounded-xl border border-border overflow-hidden">
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-muted/50 hover:bg-muted/50">
-                <TableHead className="font-display text-xs font-semibold">
-                  Name
-                </TableHead>
-                <TableHead className="font-display text-xs font-semibold hidden md:table-cell">
-                  Father's Name
-                </TableHead>
-                <TableHead className="font-display text-xs font-semibold hidden sm:table-cell">
-                  Class
-                </TableHead>
-                <TableHead className="font-display text-xs font-semibold hidden lg:table-cell">
-                  Roll No.
-                </TableHead>
-                <TableHead className="font-display text-xs font-semibold">
-                  Community
-                </TableHead>
-                <TableHead className="font-display text-xs font-semibold w-24">
-                  Actions
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {students.length === 0 ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={6}
-                    className="text-center py-8 text-muted-foreground font-body text-sm"
-                  >
-                    No students added yet.
-                  </TableCell>
+        <div className="overflow-x-auto">
+          <div className="rounded-xl border border-border overflow-hidden">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/50 hover:bg-muted/50">
+                  <TableHead className="font-display text-xs font-semibold">
+                    S.No.
+                  </TableHead>
+                  <TableHead className="font-display text-xs font-semibold">
+                    Name
+                  </TableHead>
+                  <TableHead className="font-display text-xs font-semibold">
+                    Class
+                  </TableHead>
+                  <TableHead className="font-display text-xs font-semibold">
+                    College/University
+                  </TableHead>
+                  <TableHead className="font-display text-xs font-semibold">
+                    Reg. No.
+                  </TableHead>
+                  <TableHead className="font-display text-xs font-semibold">
+                    Mobile
+                  </TableHead>
+                  <TableHead className="font-display text-xs font-semibold">
+                    Remarks
+                  </TableHead>
+                  <TableHead className="font-display text-xs font-semibold w-24">
+                    Actions
+                  </TableHead>
                 </TableRow>
-              ) : (
-                students.map((s) => (
-                  <TableRow key={s.id} className="hover:bg-muted/30">
-                    <TableCell className="font-body font-medium text-sm">
-                      {s.name}
-                    </TableCell>
-                    <TableCell className="text-sm font-body text-muted-foreground hidden md:table-cell">
-                      {s.fatherName}
-                    </TableCell>
-                    <TableCell className="text-xs font-body hidden sm:table-cell">
-                      {s.classLevel}
-                    </TableCell>
-                    <TableCell className="text-xs font-mono text-muted-foreground hidden lg:table-cell">
-                      {s.rollNumber}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className="text-xs font-body">
-                        {s.category}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex gap-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => openEdit(s)}
-                          className="h-8 w-8 p-0"
-                        >
-                          <Pencil className="w-3.5 h-3.5" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setDeleteId(s.id)}
-                          className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </Button>
-                      </div>
+              </TableHeader>
+              <TableBody>
+                {students.length === 0 ? (
+                  <TableRow>
+                    <TableCell
+                      colSpan={8}
+                      className="text-center py-8 text-muted-foreground font-body text-sm"
+                    >
+                      No students added yet.
                     </TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+                ) : (
+                  students.map((s) => (
+                    <TableRow key={s.id} className="hover:bg-muted/30">
+                      <TableCell className="text-xs font-body text-muted-foreground">
+                        {students.indexOf(s) + 1}
+                      </TableCell>
+                      <TableCell className="font-body font-medium text-sm">
+                        {s.name}
+                      </TableCell>
+                      <TableCell className="text-xs font-body">
+                        {s.classLevel || "—"}
+                      </TableCell>
+                      <TableCell className="text-sm font-body text-muted-foreground truncate max-w-[160px]">
+                        {s.fatherName || "—"}
+                      </TableCell>
+                      <TableCell className="text-xs font-mono text-muted-foreground">
+                        {s.rollNumber || "—"}
+                      </TableCell>
+                      <TableCell className="text-xs font-body text-muted-foreground">
+                        {s.year || "—"}
+                      </TableCell>
+                      <TableCell className="text-xs font-body text-muted-foreground">
+                        {s.category || "—"}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => openEdit(s)}
+                            className="h-8 w-8 p-0"
+                          >
+                            <Pencil className="w-3.5 h-3.5" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setDeleteId(s.id)}
+                            className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </div>
       )}
 
@@ -650,73 +1096,59 @@ function StudentsManagement() {
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="font-body text-sm">Father's Name</Label>
-              <Input
-                value={editing.fatherName}
-                onChange={(e) =>
-                  setEditing({ ...editing, fatherName: e.target.value })
-                }
-                placeholder="Abdul Karim Khan"
-                className="font-body text-sm"
-              />
-            </div>
-            <div className="space-y-1.5">
               <Label className="font-body text-sm">Class/Level *</Label>
               <Input
                 value={editing.classLevel}
                 onChange={(e) =>
                   setEditing({ ...editing, classLevel: e.target.value })
                 }
-                placeholder="Class 11 (Science)"
+                placeholder="B.A. 1st Year"
                 className="font-body text-sm"
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="font-body text-sm">Roll Number</Label>
+              <Label className="font-body text-sm">College/University</Label>
+              <Input
+                value={editing.fatherName}
+                onChange={(e) =>
+                  setEditing({ ...editing, fatherName: e.target.value })
+                }
+                placeholder="Berhampur University"
+                className="font-body text-sm"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="font-body text-sm">Registration No.</Label>
               <Input
                 value={editing.rollNumber}
                 onChange={(e) =>
                   setEditing({ ...editing, rollNumber: e.target.value })
                 }
-                placeholder="MS-2025-001"
+                placeholder="PMMB-2025-001"
                 className="font-body text-sm"
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="font-body text-sm">Academic Year</Label>
+              <Label className="font-body text-sm">Mobile Number</Label>
               <Input
                 value={editing.year}
                 onChange={(e) =>
                   setEditing({ ...editing, year: e.target.value })
                 }
-                placeholder="2025"
+                placeholder="9876543210"
                 className="font-body text-sm"
               />
             </div>
-            <div className="space-y-1.5">
-              <Label className="font-body text-sm">Community</Label>
-              <Select
+            <div className="col-span-2 space-y-1.5">
+              <Label className="font-body text-sm">Remarks</Label>
+              <Input
                 value={editing.category}
-                onValueChange={(v) => setEditing({ ...editing, category: v })}
-              >
-                <SelectTrigger className="font-body text-sm">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {[
-                    "Muslim",
-                    "Christian",
-                    "Sikh",
-                    "Buddhist",
-                    "Parsi",
-                    "Jain",
-                  ].map((c) => (
-                    <SelectItem key={c} value={c} className="font-body text-sm">
-                      {c}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                onChange={(e) =>
+                  setEditing({ ...editing, category: e.target.value })
+                }
+                placeholder="Merit student / Any remarks"
+                className="font-body text-sm"
+              />
             </div>
             <div className="space-y-1.5">
               <Label className="font-body text-sm">Admission Date</Label>
@@ -2118,7 +2550,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Main Tabs */}
-        <Tabs defaultValue="applications" className="w-full">
+        <Tabs defaultValue="students" className="w-full">
           <TabsList className="grid grid-cols-7 mb-8 h-auto p-1 bg-muted/70 w-full overflow-x-auto">
             {[
               {

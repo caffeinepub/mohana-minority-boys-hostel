@@ -190,6 +190,7 @@ export interface backendInterface {
     addOrUpdateStudent(student: Student): Promise<void>;
     approveApplication(id: number, note: string): Promise<void>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
+    bulkAddStudents(newStudents: Array<Student>): Promise<void>;
     getAllApplications(): Promise<Array<AdmissionApplication>>;
     getAllFees(): Promise<Array<FeesStructure>>;
     getAllGalleryImages(): Promise<Array<GalleryImage>>;
@@ -398,6 +399,20 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.assignCallerUserRole(arg0, to_candid_UserRole_n8(this._uploadFile, this._downloadFile, arg1));
+            return result;
+        }
+    }
+    async bulkAddStudents(arg0: Array<Student>): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.bulkAddStudents(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.bulkAddStudents(arg0);
             return result;
         }
     }

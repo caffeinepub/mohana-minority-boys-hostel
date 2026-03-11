@@ -6,16 +6,14 @@ import Runtime "mo:core/Runtime";
 import Order "mo:core/Order";
 import Nat16 "mo:core/Nat16";
 import Principal "mo:core/Principal";
+import Nat32 "mo:core/Nat32";
 import List "mo:core/List";
 import Array "mo:core/Array";
 import Nat "mo:core/Nat";
 import Nat8 "mo:core/Nat8";
-import Nat32 "mo:core/Nat32";
 import MixinStorage "blob-storage/Mixin";
 import AccessControl "authorization/access-control";
 import MixinAuthorization "authorization/MixinAuthorization";
-
-
 
 actor {
   // Mixins for blob storage and authorization
@@ -134,34 +132,38 @@ actor {
 
   // ---------- User Profile Management ----------
   public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
-    if (caller.isAnonymous()) {
-      Runtime.trap("Must be logged in");
-    };
     userProfiles.get(caller);
   };
 
   public query ({ caller }) func getUserProfile(user : Principal) : async ?UserProfile {
-    if (caller != user and caller.isAnonymous()) {
-      Runtime.trap("Must be logged in");
-    };
     userProfiles.get(user);
   };
 
   public shared ({ caller }) func saveCallerUserProfile(profile : UserProfile) : async () {
     if (caller.isAnonymous()) {
-      Runtime.trap("Must be logged in");
+      Runtime.trap(
+        "Unauthorized: Anonymous users cannot save profiles. Please log in with your Internet Identity to continue."
+      );
     };
     userProfiles.add(caller, profile);
   };
 
-  // ---------- Staff Management (Requires Login) ----------
+  // ---------- Staff Management ----------
   public shared ({ caller }) func addOrUpdateStaff(staffMember : StaffMember) : async () {
-    if (caller.isAnonymous()) { Runtime.trap("Must be logged in") };
+    if (caller.isAnonymous()) {
+      Runtime.trap(
+        "Anonymous users cannot manage staff. Please log in with your Internet Identity to continue."
+      );
+    };
     staff.add(staffMember.id, staffMember);
   };
 
   public shared ({ caller }) func removeStaff(id : Nat16) : async () {
-    if (caller.isAnonymous()) { Runtime.trap("Must be logged in") };
+    if (caller.isAnonymous()) {
+      Runtime.trap(
+        "Anonymous users cannot manage staff. Please log in with your Internet Identity to continue."
+      );
+    };
     staff.remove(id);
   };
 
@@ -176,14 +178,22 @@ actor {
     staff.values().toArray().sort(StaffMember.compareByOrder);
   };
 
-  // ---------- Student Management (Requires Login) ----------
+  // ---------- Student Management ----------
   public shared ({ caller }) func addOrUpdateStudent(student : Student) : async () {
-    if (caller.isAnonymous()) { Runtime.trap("Must be logged in") };
+    if (caller.isAnonymous()) {
+      Runtime.trap(
+        "Anonymous users cannot manage students. Please log in with your Internet Identity to continue."
+      );
+    };
     students.add(student.id, student);
   };
 
   public shared ({ caller }) func removeStudent(id : Nat16) : async () {
-    if (caller.isAnonymous()) { Runtime.trap("Must be logged in") };
+    if (caller.isAnonymous()) {
+      Runtime.trap(
+        "Anonymous users cannot manage students. Please log in with your Internet Identity to continue."
+      );
+    };
     students.remove(id);
   };
 
@@ -198,14 +208,33 @@ actor {
     students.values().toArray();
   };
 
-  // ---------- Fees Management (Requires Login) ----------
+  public shared ({ caller }) func bulkAddStudents(newStudents : [Student]) : async () {
+    if (caller.isAnonymous()) {
+      Runtime.trap(
+        "Anonymous users cannot bulk add students. Please log in with your Internet Identity to continue."
+      );
+    };
+    for (s in newStudents.values()) {
+      students.add(s.id, s);
+    };
+  };
+
+  // ---------- Fees Management ----------
   public shared ({ caller }) func addOrUpdateFees(feesStructure : FeesStructure) : async () {
-    if (caller.isAnonymous()) { Runtime.trap("Must be logged in") };
+    if (caller.isAnonymous()) {
+      Runtime.trap(
+        "Anonymous users cannot manage fees. Please log in with your Internet Identity to continue."
+      );
+    };
     fees.add(feesStructure.id, feesStructure);
   };
 
   public shared ({ caller }) func removeFees(id : Nat16) : async () {
-    if (caller.isAnonymous()) { Runtime.trap("Must be logged in") };
+    if (caller.isAnonymous()) {
+      Runtime.trap(
+        "Anonymous users cannot manage fees. Please log in with your Internet Identity to continue."
+      );
+    };
     fees.remove(id);
   };
 
@@ -220,14 +249,22 @@ actor {
     fees.values().toArray();
   };
 
-  // ---------- Gallery Management (Requires Login) ----------
+  // ---------- Gallery Management ----------
   public shared ({ caller }) func addOrUpdateGalleryImage(image : GalleryImage) : async () {
-    if (caller.isAnonymous()) { Runtime.trap("Must be logged in") };
+    if (caller.isAnonymous()) {
+      Runtime.trap(
+        "Anonymous users cannot manage gallery images. Please log in with your Internet Identity to continue."
+      );
+    };
     gallery.add(image.id, image);
   };
 
   public shared ({ caller }) func removeGalleryImage(id : Nat16) : async () {
-    if (caller.isAnonymous()) { Runtime.trap("Must be logged in") };
+    if (caller.isAnonymous()) {
+      Runtime.trap(
+        "Anonymous users cannot manage gallery images. Please log in with your Internet Identity to continue."
+      );
+    };
     gallery.remove(id);
   };
 
@@ -242,9 +279,13 @@ actor {
     gallery.values().toArray();
   };
 
-  // ---------- Site Settings Management (Requires Login) ----------
+  // ---------- Site Settings Management ----------
   public shared ({ caller }) func updateSiteSettings(newSettings : SiteSettings) : async () {
-    if (caller.isAnonymous()) { Runtime.trap("Must be logged in") };
+    if (caller.isAnonymous()) {
+      Runtime.trap(
+        "Anonymous users cannot update site settings. Please log in with your Internet Identity to continue."
+      );
+    };
     siteSettings := newSettings;
   };
 
@@ -252,7 +293,7 @@ actor {
     siteSettings;
   };
 
-  // ---------- Student Applicants Auth (No authorization required) ----------
+  // ---------- Student Applicants Auth (No authentication required) ----------
   func hashPin(pin : Text) : Text {
     let chars = List.fromIter(pin.chars());
     chars.toText();
@@ -307,18 +348,14 @@ actor {
   };
 
   public query ({ caller }) func getMyApplication(mobile : Text) : async AdmissionApplication {
-    // Authorization: caller must be logged in as this mobile number
     let sessionMobile = applicantSessions.get(caller);
-
     let authorized = switch (sessionMobile) {
       case (null) { false };
       case (?m) { m == mobile };
     };
-
     if (not authorized) {
-      Runtime.trap("Unauthorized: Can only view your own application");
+      Runtime.trap("Unauthorized: Access denied. Session does not match requested mobile number. Please ensure you are logged in with the correct credentials and try again.");
     };
-
     let appIter = applications.values();
     switch (appIter.find(func(app) { app.applicantMobile == mobile })) {
       case (null) {
@@ -329,12 +366,20 @@ actor {
   };
 
   public query ({ caller }) func getAllApplications() : async [AdmissionApplication] {
-    if (caller.isAnonymous()) { Runtime.trap("Must be logged in") };
+    if (caller.isAnonymous()) {
+      Runtime.trap(
+        "Anonymous users cannot view admission applications. Please log in with your Internet Identity to continue."
+      );
+    };
     applications.values().toArray();
   };
 
   public shared ({ caller }) func approveApplication(id : Nat16, note : Text) : async () {
-    if (caller.isAnonymous()) { Runtime.trap("Must be logged in") };
+    if (caller.isAnonymous()) {
+      Runtime.trap(
+        "Anonymous users cannot approve applications. Please log in with your Internet Identity to continue."
+      );
+    };
     switch (applications.get(id)) {
       case (null) { Runtime.trap("Application not found") };
       case (?app) {
@@ -350,7 +395,11 @@ actor {
   };
 
   public shared ({ caller }) func rejectApplication(id : Nat16, note : Text) : async () {
-    if (caller.isAnonymous()) { Runtime.trap("Must be logged in") };
+    if (caller.isAnonymous()) {
+      Runtime.trap(
+        "Anonymous users cannot reject applications. Please log in with your Internet Identity to continue."
+      );
+    };
     switch (applications.get(id)) {
       case (null) { Runtime.trap("Application not found") };
       case (?app) {

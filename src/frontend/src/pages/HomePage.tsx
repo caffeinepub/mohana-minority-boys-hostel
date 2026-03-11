@@ -270,6 +270,90 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Distinguished Leaders Section */}
+      <section className="py-16 navy-gradient">
+        <div className="container mx-auto px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-12"
+          >
+            <div className="flex items-center justify-center gap-4 mb-3">
+              <div className="h-px flex-1 max-w-[80px] bg-[oklch(var(--saffron)/0.4)]" />
+              <span className="font-body text-[11px] tracking-[0.2em] uppercase text-[oklch(var(--saffron)/0.8)] font-semibold">
+                Leadership &amp; Governance
+              </span>
+              <div className="h-px flex-1 max-w-[80px] bg-[oklch(var(--saffron)/0.4)]" />
+            </div>
+            <h2 className="font-serif font-bold text-3xl md:text-4xl text-white tracking-tight mb-2">
+              Our Distinguished Leaders
+            </h2>
+            <div className="mx-auto w-24 gold-rule mt-3" />
+          </motion.div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 max-w-5xl mx-auto">
+            {[
+              {
+                img: "/assets/generated/india-pm.dim_200x200.jpg",
+                name: "Shri Narendra Modi",
+                title: "Hon'ble Prime Minister of India",
+              },
+              {
+                img: "/assets/generated/minority-minister.dim_200x200.jpg",
+                name: "Shri Kiren Rijiju",
+                title: "Hon'ble Minister of Minority Affairs, Govt. of India",
+              },
+              {
+                img: "/assets/uploads/images-88--1.jpeg",
+                name: "Shri Mohan Charan Majhi",
+                title: "Hon'ble Chief Minister of Odisha",
+              },
+              {
+                img: "/assets/generated/obc-director-jugaleswari-dash.dim_300x300.jpg",
+                name: "Smt Jugaleswari Dash",
+                title: "OBC Director, Odisha",
+              },
+            ].map((leader, i) => (
+              <motion.div
+                key={leader.name}
+                initial={{ opacity: 0, y: 28 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.15, duration: 0.55 }}
+                className="flex flex-col items-center text-center"
+              >
+                <div
+                  className="rounded-2xl overflow-hidden border-2 border-[oklch(var(--saffron)/0.5)] shadow-xl shadow-[oklch(0.10_0.05_260/0.5)] bg-white/5 backdrop-blur-sm p-5 w-full transition-all duration-300 hover:border-[oklch(var(--saffron))] hover:shadow-[0_8px_32px_oklch(var(--saffron)/0.25)] hover:-translate-y-1"
+                  style={{
+                    background:
+                      "linear-gradient(145deg, oklch(0.22 0.08 258 / 0.6) 0%, oklch(0.16 0.06 258 / 0.8) 100%)",
+                  }}
+                >
+                  <div className="relative inline-block mb-4">
+                    <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-[oklch(var(--saffron)/0.7)] shadow-lg mx-auto">
+                      <img
+                        src={leader.img}
+                        alt={leader.name}
+                        className="w-full h-full object-cover object-top"
+                      />
+                    </div>
+                    {/* Gold ring glow */}
+                    <div className="absolute inset-0 rounded-full shadow-[0_0_20px_oklch(var(--saffron)/0.3)] pointer-events-none" />
+                  </div>
+                  <h3 className="font-display font-bold text-white text-sm leading-tight mb-1">
+                    {leader.name}
+                  </h3>
+                  <p className="text-[oklch(var(--saffron)/0.85)] text-xs font-body leading-snug">
+                    {leader.title}
+                  </p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Features Section */}
       <section className="py-20 bg-background">
         <div className="container mx-auto px-4">

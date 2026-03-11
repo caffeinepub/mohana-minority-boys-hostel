@@ -88,6 +88,18 @@ export function useRemoveStudent() {
   });
 }
 
+export function useBulkAddStudents() {
+  const { actor } = useActor();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (students: Student[]) => {
+      if (!actor) throw new Error("Not connected");
+      return actor.bulkAddStudents(students);
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["students"] }),
+  });
+}
+
 // ─── Fees ────────────────────────────────────────────────────────────────────
 
 export function useGetAllFees() {
