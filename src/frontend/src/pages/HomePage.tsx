@@ -74,7 +74,7 @@ export default function HomePage() {
         {/* Full-bleed background hostel image */}
         <div className="absolute inset-0 z-0">
           <img
-            src="/assets/generated/hostel-hero.dim_1200x600.jpg"
+            src="/assets/uploads/hostel-1.jpeg"
             alt="Post Matric Minority Boys Hostel, Mohana"
             className="w-full h-full object-cover object-center"
           />
