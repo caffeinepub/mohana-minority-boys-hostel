@@ -22,6 +22,10 @@ export interface SiteSettings {
     announcementText: string;
     admissionLink: string;
     scholarshipLink: string;
+    seatsAvailable: string;
+    studentsEnrolled: string;
+    yearsOfService: string;
+    scholarshipsFacilitated: string;
 }
 export type Time = bigint;
 export interface GalleryImage {

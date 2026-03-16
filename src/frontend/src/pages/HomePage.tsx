@@ -54,13 +54,6 @@ const features = [
   },
 ];
 
-const stats = [
-  { label: "Seats Available", value: "50+" },
-  { label: "Students Enrolled", value: "45+" },
-  { label: "Years of Service", value: "15+" },
-  { label: "Scholarships Facilitated", value: "200+" },
-];
-
 export default function HomePage() {
   const { data: settings } = useGetSiteSettings();
   const { data: staff } = useGetAllStaff();
@@ -249,7 +242,24 @@ export default function HomePage() {
       <section className="bg-[oklch(var(--saffron))] py-6">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {stats.map((stat, i) => (
+            {[
+              {
+                label: "Seats Available",
+                value: settings?.seatsAvailable ?? "50+",
+              },
+              {
+                label: "Students Enrolled",
+                value: settings?.studentsEnrolled ?? "45+",
+              },
+              {
+                label: "Years of Service",
+                value: settings?.yearsOfService ?? "15+",
+              },
+              {
+                label: "Scholarships Facilitated",
+                value: settings?.scholarshipsFacilitated ?? "200+",
+              },
+            ].map((stat, i) => (
               <motion.div
                 key={stat.label}
                 initial={{ opacity: 0, y: 10 }}
@@ -558,6 +568,25 @@ export default function HomePage() {
                 <p className="text-muted-foreground text-xs font-body">
                   +91 9876543210
                 </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                <ExternalLink className="w-5 h-5 text-primary" />
+              </div>
+              <div className="text-left">
+                <p className="font-body font-semibold text-sm text-foreground">
+                  ST &amp; SC Dev. Dept., Odisha
+                </p>
+                <a
+                  href="https://stsc.odisha.gov.in/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary hover:underline text-xs font-body"
+                  data-ocid="contact.link"
+                >
+                  stsc.odisha.gov.in
+                </a>
               </div>
             </div>
           </div>

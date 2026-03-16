@@ -92,6 +92,10 @@ export const SiteSettings = IDL.Record({
   'announcementText' : IDL.Text,
   'admissionLink' : IDL.Text,
   'scholarshipLink' : IDL.Text,
+  'seatsAvailable' : IDL.Text,
+  'studentsEnrolled' : IDL.Text,
+  'yearsOfService' : IDL.Text,
+  'scholarshipsFacilitated' : IDL.Text,
 });
 
 export const idlService = IDL.Service({

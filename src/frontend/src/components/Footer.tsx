@@ -78,15 +78,27 @@ export default function Footer() {
                 pmmbh.mohana@odisha.gov.in
               </li>
             </ul>
-            <a
-              href="https://scholarship.odisha.gov.in/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 mt-4 text-xs text-[oklch(var(--saffron))] hover:underline font-body"
-            >
-              <ExternalLink className="w-3 h-3" />
-              Odisha Scholarship Portal
-            </a>
+            <div className="flex flex-col gap-2 mt-4">
+              <a
+                href="https://scholarship.odisha.gov.in/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-xs text-[oklch(var(--saffron))] hover:underline font-body"
+              >
+                <ExternalLink className="w-3 h-3" />
+                Odisha Scholarship Portal
+              </a>
+              <a
+                href="https://stsc.odisha.gov.in/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-xs text-[oklch(var(--saffron))] hover:underline font-body"
+                data-ocid="footer.link"
+              >
+                <ExternalLink className="w-3 h-3" />
+                ST &amp; SC Dev. Dept., Odisha
+              </a>
+            </div>
           </div>
         </div>
 

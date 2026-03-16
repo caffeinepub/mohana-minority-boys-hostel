@@ -53,6 +53,10 @@ export interface SiteSettings {
   'announcementText' : string,
   'admissionLink' : string,
   'scholarshipLink' : string,
+  'seatsAvailable' : string,
+  'studentsEnrolled' : string,
+  'yearsOfService' : string,
+  'scholarshipsFacilitated' : string,
 }
 export interface StaffMember {
   'id' : number,

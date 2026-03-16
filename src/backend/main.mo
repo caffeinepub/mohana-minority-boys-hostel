@@ -71,10 +71,20 @@ actor {
     uploadedBy : Text;
   };
 
+  public type OldSiteSettings = {
+    admissionLink : Text;
+    scholarshipLink : Text;
+    announcementText : Text;
+  };
+
   public type SiteSettings = {
     admissionLink : Text;
     scholarshipLink : Text;
     announcementText : Text;
+    seatsAvailable : Text;
+    studentsEnrolled : Text;
+    yearsOfService : Text;
+    scholarshipsFacilitated : Text;
   };
 
   public type StudentApplicant = {
@@ -124,11 +134,15 @@ actor {
   let applicantSessions = Map.empty<Principal, Text>();
   var nextApplicationId : Nat = 1;
 
-  var siteSettings : SiteSettings = {
+  stable var siteSettings : OldSiteSettings = {
     admissionLink = "";
     scholarshipLink = "https://scholarship.odisha.gov.in/";
     announcementText = "Welcome to Post Matric Minority Boys Hostel, Biribatia, Mohana";
   };
+  stable var statSeatsAvailable : Text = "50+";
+  stable var statStudentsEnrolled : Text = "45+";
+  stable var statYearsOfService : Text = "15+";
+  stable var statScholarshipsFacilitated : Text = "200+";
 
   // ---------- User Profile Management ----------
   public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
@@ -286,11 +300,27 @@ actor {
         "Anonymous users cannot update site settings. Please log in with your Internet Identity to continue."
       );
     };
-    siteSettings := newSettings;
+    siteSettings := {
+      admissionLink = newSettings.admissionLink;
+      scholarshipLink = newSettings.scholarshipLink;
+      announcementText = newSettings.announcementText;
+    };
+    statSeatsAvailable := newSettings.seatsAvailable;
+    statStudentsEnrolled := newSettings.studentsEnrolled;
+    statYearsOfService := newSettings.yearsOfService;
+    statScholarshipsFacilitated := newSettings.scholarshipsFacilitated;
   };
 
   public query func getSiteSettings() : async SiteSettings {
-    siteSettings;
+    {
+      admissionLink = siteSettings.admissionLink;
+      scholarshipLink = siteSettings.scholarshipLink;
+      announcementText = siteSettings.announcementText;
+      seatsAvailable = statSeatsAvailable;
+      studentsEnrolled = statStudentsEnrolled;
+      yearsOfService = statYearsOfService;
+      scholarshipsFacilitated = statScholarshipsFacilitated;
+    };
   };
 
   // ---------- Student Applicants Auth (No authentication required) ----------

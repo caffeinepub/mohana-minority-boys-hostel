@@ -1722,6 +1722,10 @@ function SiteSettingsPanel() {
     admissionLink: "",
     scholarshipLink: "",
     announcementText: "",
+    seatsAvailable: "50+",
+    studentsEnrolled: "45+",
+    yearsOfService: "15+",
+    scholarshipsFacilitated: "200+",
   });
 
   const [initialized, setInitialized] = useState(false);
@@ -1731,6 +1735,10 @@ function SiteSettingsPanel() {
       admissionLink: settings.admissionLink ?? "",
       scholarshipLink: settings.scholarshipLink ?? "",
       announcementText: settings.announcementText ?? "",
+      seatsAvailable: settings.seatsAvailable ?? "50+",
+      studentsEnrolled: settings.studentsEnrolled ?? "45+",
+      yearsOfService: settings.yearsOfService ?? "15+",
+      scholarshipsFacilitated: settings.scholarshipsFacilitated ?? "200+",
     });
     setInitialized(true);
   }
@@ -1804,10 +1812,81 @@ function SiteSettingsPanel() {
             </p>
           </div>
 
+          <div className="space-y-1.5">
+            <Label className="font-body text-sm font-semibold text-foreground">
+              Homepage Stats
+            </Label>
+            <p className="text-xs text-muted-foreground font-body mb-3">
+              These numbers appear in the stats bar on the homepage.
+            </p>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label className="font-body text-xs text-muted-foreground">
+                  Seats Available
+                </Label>
+                <Input
+                  value={form.seatsAvailable}
+                  onChange={(e) =>
+                    setForm({ ...form, seatsAvailable: e.target.value })
+                  }
+                  placeholder="50+"
+                  className="font-body text-sm"
+                  data-ocid="settings.seats_available.input"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="font-body text-xs text-muted-foreground">
+                  Students Enrolled
+                </Label>
+                <Input
+                  value={form.studentsEnrolled}
+                  onChange={(e) =>
+                    setForm({ ...form, studentsEnrolled: e.target.value })
+                  }
+                  placeholder="45+"
+                  className="font-body text-sm"
+                  data-ocid="settings.students_enrolled.input"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="font-body text-xs text-muted-foreground">
+                  Years of Service
+                </Label>
+                <Input
+                  value={form.yearsOfService}
+                  onChange={(e) =>
+                    setForm({ ...form, yearsOfService: e.target.value })
+                  }
+                  placeholder="15+"
+                  className="font-body text-sm"
+                  data-ocid="settings.years_of_service.input"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="font-body text-xs text-muted-foreground">
+                  Scholarships Facilitated
+                </Label>
+                <Input
+                  value={form.scholarshipsFacilitated}
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+                      scholarshipsFacilitated: e.target.value,
+                    })
+                  }
+                  placeholder="200+"
+                  className="font-body text-sm"
+                  data-ocid="settings.scholarships_facilitated.input"
+                />
+              </div>
+            </div>
+          </div>
+
           <Button
             onClick={handleSave}
             disabled={updateSettings.isPending}
             className="bg-primary text-primary-foreground font-body"
+            data-ocid="settings.save_button"
           >
             {updateSettings.isPending ? (
               <>
