@@ -1,0 +1,163 @@
+@import url("https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;500;600;700&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0.97 0.005 258;
+    --foreground: 0.18 0.04 258;
+
+    --card: 1 0 0;
+    --card-foreground: 0.18 0.04 258;
+
+    --popover: 1 0 0;
+    --popover-foreground: 0.18 0.04 258;
+
+    --primary: 0.25 0.09 258;
+    --primary-foreground: 0.98 0.005 258;
+
+    --secondary: 0.93 0.02 258;
+    --secondary-foreground: 0.25 0.09 258;
+
+    --muted: 0.93 0.02 258;
+    --muted-foreground: 0.52 0.04 258;
+
+    --accent: 0.72 0.18 58;
+    --accent-foreground: 0.15 0.04 258;
+
+    --destructive: 0.55 0.22 27;
+    --destructive-foreground: 0.98 0.005 258;
+
+    --border: 0.88 0.02 258;
+    --input: 0.88 0.02 258;
+    --ring: 0.25 0.09 258;
+
+    --radius: 0.5rem;
+
+    --navy: 0.25 0.09 258;
+    --saffron: 0.72 0.18 58;
+    --gold: 0.78 0.15 85;
+
+    --chart-1: 0.55 0.18 258;
+    --chart-2: 0.65 0.16 160;
+    --chart-3: 0.72 0.18 58;
+    --chart-4: 0.6 0.2 290;
+    --chart-5: 0.55 0.22 27;
+
+    --sidebar: 0.25 0.09 258;
+    --sidebar-foreground: 0.92 0.01 258;
+    --sidebar-primary: 0.72 0.18 58;
+    --sidebar-primary-foreground: 0.15 0.04 258;
+    --sidebar-accent: 0.3 0.08 258;
+    --sidebar-accent-foreground: 0.92 0.01 258;
+    --sidebar-border: 0.32 0.07 258;
+    --sidebar-ring: 0.72 0.18 58;
+  }
+
+  .dark {
+    --background: 0.13 0.04 258;
+    --foreground: 0.93 0.01 258;
+
+    --card: 0.16 0.05 258;
+    --card-foreground: 0.93 0.01 258;
+
+    --popover: 0.16 0.05 258;
+    --popover-foreground: 0.93 0.01 258;
+
+    --primary: 0.72 0.18 58;
+    --primary-foreground: 0.13 0.04 258;
+
+    --secondary: 0.22 0.06 258;
+    --secondary-foreground: 0.93 0.01 258;
+
+    --muted: 0.22 0.06 258;
+    --muted-foreground: 0.62 0.04 258;
+
+    --accent: 0.72 0.18 58;
+    --accent-foreground: 0.13 0.04 258;
+
+    --destructive: 0.55 0.22 27;
+    --destructive-foreground: 0.98 0.005 258;
+
+    --border: 0.26 0.06 258;
+    --input: 0.26 0.06 258;
+    --ring: 0.72 0.18 58;
+
+    --chart-1: 0.65 0.2 258;
+    --chart-2: 0.7 0.16 160;
+    --chart-3: 0.72 0.18 58;
+    --chart-4: 0.65 0.2 290;
+    --chart-5: 0.6 0.22 27;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: "Cabinet Grotesk", "Bricolage Grotesque", sans-serif;
+  }
+}
+
+@layer components {
+  .nav-glass {
+    background: linear-gradient(
+      135deg,
+      oklch(0.13 0.06 260 / 0.97) 0%,
+      oklch(0.17 0.07 258 / 0.97) 100%
+    );
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid oklch(0.72 0.18 58 / 0.15);
+  }
+
+  .hero-pattern {
+    background: linear-gradient(
+      135deg,
+      oklch(0.12 0.07 262) 0%,
+      oklch(0.17 0.08 258) 60%,
+      oklch(0.14 0.06 260) 100%
+    );
+  }
+
+  .navy-gradient {
+    background: linear-gradient(
+      135deg,
+      oklch(0.14 0.07 260) 0%,
+      oklch(0.18 0.08 258) 100%
+    );
+  }
+
+  .feature-card-navy {
+    background: oklch(0.97 0.01 258);
+    border-color: oklch(0.88 0.03 258);
+  }
+
+  .feature-card-gold {
+    background: oklch(0.98 0.01 70);
+    border-color: oklch(0.88 0.05 70);
+  }
+
+  .gold-rule {
+    height: 2px;
+    background: linear-gradient(
+      90deg,
+      oklch(0.72 0.18 58) 0%,
+      oklch(0.72 0.18 58 / 0.3) 100%
+    );
+    border-radius: 9999px;
+    display: block;
+  }
+
+  .card-hover {
+    transition: all 0.2s ease;
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px oklch(0.2 0.09 258 / 0.15);
+    }
+  }
+}

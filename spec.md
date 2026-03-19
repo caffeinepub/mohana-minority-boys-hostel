@@ -1,28 +1,26 @@
 # Mohana Minority Boys Hostel
 
 ## Current State
-Full-stack hostel management website with:
-- Public pages: Home, Staff, Students, Fees, Scholarship, Gallery, Admission
-- Admin dashboard with tabs: Applications, Staff, Students, Fees, Gallery, Settings, Admins
-- Internet Identity login for admin access (open to all authenticated users)
-- Student applicant portal with mobile+PIN registration, 3-step application form
-- Blob storage for photo/document uploads
-- Authorization module (access-control.mo) where first caller with admin token becomes admin, others become #user
+- Admin dashboard has a "Delete All Students" button with confirmation dialog, but it is not working.
+- The admission form saves all form data (guardian, health, academic rows) to localStorage on submit, then the PDF reads from localStorage. If localStorage is cleared or user is on a different device, the PDF shows blanks for those fields.
+- The `AdmissionApplication` backend type is missing many fields: guardian details, health info, academic rows, extra document URLs (residenceCertUrl, class10CertUrl, class12CertUrl, graduationCertUrl), local guardian info, blood group, etc.
 
 ## Requested Changes (Diff)
 
 ### Add
-- Nothing new
+- Extended `AdmissionApplication` backend type with all form fields: guardianName, guardianRelationship, guardianContact, guardianOccupation, localGuardianName, localGuardianMobile, presentAddress, bloodGroup, identificationMark, healthProblems, courseName, courseDuration, institutionAddress, academicRowsJson (serialized JSON string of academic rows), residenceCertUrl, class10CertUrl, class12CertUrl, graduationCertUrl, mentionCommunity, photoIdentityType, photoIdentityNo, currentYearSemester
 
 ### Modify
-- **Authorization logic**: The `isCallerAdminSafe` and `hasUserPermission` helper functions must allow ANY non-anonymous caller (not just those with `#admin` role). Since the admin panel was opened to all logged-in users, write operations must also permit any authenticated principal. Previously, users were assigned `#user` role on first login (not `#admin`) and this blocked all save/update operations.
+- `deleteAllStudents` backend: change implementation to iterate over all student IDs and remove them one by one instead of relying on `Map.clear()`
+- `AdmissionApplication` type: add all missing fields
+- Frontend ApplicationFormPage: pass all fields to the backend when submitting
+- Frontend ApplicationStatusPage PDF: read all data from the `application` object from backend instead of relying on localStorage
 
 ### Remove
-- Nothing
+- Dependency on localStorage for PDF data (localStorage can still be used as a cache but backend is the source of truth)
 
 ## Implementation Plan
-1. Regenerate backend with corrected authorization helpers:
-   - `isCallerAdminSafe(caller)`: returns `true` for any non-anonymous principal
-   - `hasUserPermission(caller)`: returns `true` for any non-anonymous principal
-   - All other backend logic (staff, students, fees, gallery, applications, settings, applicant auth) remains identical
-2. Keep all existing data types, APIs, and functionality unchanged
+1. Regenerate backend with extended AdmissionApplication type and fixed deleteAllStudents
+2. Update ApplicationFormPage to include all form fields in the submitted application object
+3. Update ApplicationStatusPage to build PDF from backend application data (no localStorage dependency)
+4. Validate and deploy

@@ -107,11 +107,11 @@ export interface StaffMember {
 export interface SiteSettings {
     announcementText: string;
     admissionLink: string;
-    scholarshipLink: string;
-    seatsAvailable: string;
     studentsEnrolled: string;
-    yearsOfService: string;
+    scholarshipLink: string;
     scholarshipsFacilitated: string;
+    seatsAvailable: string;
+    yearsOfService: string;
 }
 export type Time = bigint;
 export interface GalleryImage {
@@ -133,24 +133,46 @@ export interface FeesStructure {
 }
 export interface AdmissionApplication {
     id: number;
+    institutionAddress?: string;
     status: ApplicationStatus;
+    residenceCertUrl?: string;
+    localGuardianName?: string;
     applicantName: string;
+    photoIdentityType?: string;
     institutionName: string;
+    graduationCertUrl?: string;
+    healthProblems?: string;
+    class10CertUrl?: string;
+    guardianContact?: string;
     dateOfBirth: string;
+    mentionCommunity?: string;
     annualIncome: string;
+    identificationMark?: string;
     submittedAt: Time;
+    localGuardianMobile?: string;
     photoUrl: string;
     reviewNote: string;
+    guardianRelationship?: string;
     applicantMobile: string;
     reviewedAt?: Time;
     district: string;
+    courseDuration?: string;
     state: string;
     fatherName: string;
+    bloodGroup?: string;
     address: string;
+    class12CertUrl?: string;
     incomeCertUrl: string;
     category: string;
     pinCode: string;
+    academicRowsJson?: string;
+    courseName?: string;
+    guardianName?: string;
     classYear: string;
+    currentYearSemester?: string;
+    presentAddress?: string;
+    guardianOccupation?: string;
+    photoIdentityNo?: string;
     casteCertUrl: string;
 }
 export interface _CaffeineStorageCreateCertificateResult {
@@ -195,6 +217,7 @@ export interface backendInterface {
     approveApplication(id: number, note: string): Promise<void>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
     bulkAddStudents(newStudents: Array<Student>): Promise<void>;
+    deleteAllStudents(): Promise<void>;
     getAllApplications(): Promise<Array<AdmissionApplication>>;
     getAllFees(): Promise<Array<FeesStructure>>;
     getAllGalleryImages(): Promise<Array<GalleryImage>>;
@@ -420,6 +443,20 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async deleteAllStudents(): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.deleteAllStudents();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.deleteAllStudents();
+            return result;
+        }
+    }
     async getAllApplications(): Promise<Array<AdmissionApplication>> {
         if (this.processError) {
             try {
@@ -494,28 +531,28 @@ export class Backend implements backendInterface {
         if (this.processError) {
             try {
                 const result = await this.actor.getCallerUserProfile();
-                return from_candid_opt_n16(this._uploadFile, this._downloadFile, result);
+                return from_candid_opt_n17(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getCallerUserProfile();
-            return from_candid_opt_n16(this._uploadFile, this._downloadFile, result);
+            return from_candid_opt_n17(this._uploadFile, this._downloadFile, result);
         }
     }
     async getCallerUserRole(): Promise<UserRole> {
         if (this.processError) {
             try {
                 const result = await this.actor.getCallerUserRole();
-                return from_candid_UserRole_n17(this._uploadFile, this._downloadFile, result);
+                return from_candid_UserRole_n18(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getCallerUserRole();
-            return from_candid_UserRole_n17(this._uploadFile, this._downloadFile, result);
+            return from_candid_UserRole_n18(this._uploadFile, this._downloadFile, result);
         }
     }
     async getFees(arg0: number): Promise<FeesStructure> {
@@ -606,14 +643,14 @@ export class Backend implements backendInterface {
         if (this.processError) {
             try {
                 const result = await this.actor.getUserProfile(arg0);
-                return from_candid_opt_n16(this._uploadFile, this._downloadFile, result);
+                return from_candid_opt_n17(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getUserProfile(arg0);
-            return from_candid_opt_n16(this._uploadFile, this._downloadFile, result);
+            return from_candid_opt_n17(this._uploadFile, this._downloadFile, result);
         }
     }
     async isCallerAdmin(): Promise<boolean> {
@@ -745,14 +782,14 @@ export class Backend implements backendInterface {
     async submitApplication(arg0: AdmissionApplication): Promise<number> {
         if (this.processError) {
             try {
-                const result = await this.actor.submitApplication(to_candid_AdmissionApplication_n19(this._uploadFile, this._downloadFile, arg0));
+                const result = await this.actor.submitApplication(to_candid_AdmissionApplication_n20(this._uploadFile, this._downloadFile, arg0));
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.submitApplication(to_candid_AdmissionApplication_n19(this._uploadFile, this._downloadFile, arg0));
+            const result = await this.actor.submitApplication(to_candid_AdmissionApplication_n20(this._uploadFile, this._downloadFile, arg0));
             return result;
         }
     }
@@ -774,19 +811,22 @@ export class Backend implements backendInterface {
 function from_candid_AdmissionApplication_n11(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _AdmissionApplication): AdmissionApplication {
     return from_candid_record_n12(_uploadFile, _downloadFile, value);
 }
-function from_candid_ApplicationStatus_n13(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _ApplicationStatus): ApplicationStatus {
-    return from_candid_variant_n14(_uploadFile, _downloadFile, value);
+function from_candid_ApplicationStatus_n14(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _ApplicationStatus): ApplicationStatus {
+    return from_candid_variant_n15(_uploadFile, _downloadFile, value);
 }
-function from_candid_UserRole_n17(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _UserRole): UserRole {
-    return from_candid_variant_n18(_uploadFile, _downloadFile, value);
+function from_candid_UserRole_n18(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _UserRole): UserRole {
+    return from_candid_variant_n19(_uploadFile, _downloadFile, value);
 }
 function from_candid__CaffeineStorageRefillResult_n4(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: __CaffeineStorageRefillResult): _CaffeineStorageRefillResult {
     return from_candid_record_n5(_uploadFile, _downloadFile, value);
 }
-function from_candid_opt_n15(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_Time]): Time | null {
+function from_candid_opt_n13(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [string]): string | null {
     return value.length === 0 ? null : value[0];
 }
-function from_candid_opt_n16(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_UserProfile]): UserProfile | null {
+function from_candid_opt_n16(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_Time]): Time | null {
+    return value.length === 0 ? null : value[0];
+}
+function from_candid_opt_n17(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_UserProfile]): UserProfile | null {
     return value.length === 0 ? null : value[0];
 }
 function from_candid_opt_n6(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [boolean]): boolean | null {
@@ -797,67 +837,133 @@ function from_candid_opt_n7(_uploadFile: (file: ExternalBlob) => Promise<Uint8Ar
 }
 function from_candid_record_n12(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     id: number;
+    institutionAddress: [] | [string];
     status: _ApplicationStatus;
+    residenceCertUrl: [] | [string];
+    localGuardianName: [] | [string];
     applicantName: string;
+    photoIdentityType: [] | [string];
     institutionName: string;
+    graduationCertUrl: [] | [string];
+    healthProblems: [] | [string];
+    class10CertUrl: [] | [string];
+    guardianContact: [] | [string];
     dateOfBirth: string;
+    mentionCommunity: [] | [string];
     annualIncome: string;
+    identificationMark: [] | [string];
     submittedAt: _Time;
+    localGuardianMobile: [] | [string];
     photoUrl: string;
     reviewNote: string;
+    guardianRelationship: [] | [string];
     applicantMobile: string;
     reviewedAt: [] | [_Time];
     district: string;
+    courseDuration: [] | [string];
     state: string;
     fatherName: string;
+    bloodGroup: [] | [string];
     address: string;
+    class12CertUrl: [] | [string];
     incomeCertUrl: string;
     category: string;
     pinCode: string;
+    academicRowsJson: [] | [string];
+    courseName: [] | [string];
+    guardianName: [] | [string];
     classYear: string;
+    currentYearSemester: [] | [string];
+    presentAddress: [] | [string];
+    guardianOccupation: [] | [string];
+    photoIdentityNo: [] | [string];
     casteCertUrl: string;
 }): {
     id: number;
+    institutionAddress?: string;
     status: ApplicationStatus;
+    residenceCertUrl?: string;
+    localGuardianName?: string;
     applicantName: string;
+    photoIdentityType?: string;
     institutionName: string;
+    graduationCertUrl?: string;
+    healthProblems?: string;
+    class10CertUrl?: string;
+    guardianContact?: string;
     dateOfBirth: string;
+    mentionCommunity?: string;
     annualIncome: string;
+    identificationMark?: string;
     submittedAt: Time;
+    localGuardianMobile?: string;
     photoUrl: string;
     reviewNote: string;
+    guardianRelationship?: string;
     applicantMobile: string;
     reviewedAt?: Time;
     district: string;
+    courseDuration?: string;
     state: string;
     fatherName: string;
+    bloodGroup?: string;
     address: string;
+    class12CertUrl?: string;
     incomeCertUrl: string;
     category: string;
     pinCode: string;
+    academicRowsJson?: string;
+    courseName?: string;
+    guardianName?: string;
     classYear: string;
+    currentYearSemester?: string;
+    presentAddress?: string;
+    guardianOccupation?: string;
+    photoIdentityNo?: string;
     casteCertUrl: string;
 } {
     return {
         id: value.id,
-        status: from_candid_ApplicationStatus_n13(_uploadFile, _downloadFile, value.status),
+        institutionAddress: record_opt_to_undefined(from_candid_opt_n13(_uploadFile, _downloadFile, value.institutionAddress)),
+        status: from_candid_ApplicationStatus_n14(_uploadFile, _downloadFile, value.status),
+        residenceCertUrl: record_opt_to_undefined(from_candid_opt_n13(_uploadFile, _downloadFile, value.residenceCertUrl)),
+        localGuardianName: record_opt_to_undefined(from_candid_opt_n13(_uploadFile, _downloadFile, value.localGuardianName)),
         applicantName: value.applicantName,
+        photoIdentityType: record_opt_to_undefined(from_candid_opt_n13(_uploadFile, _downloadFile, value.photoIdentityType)),
         institutionName: value.institutionName,
+        graduationCertUrl: record_opt_to_undefined(from_candid_opt_n13(_uploadFile, _downloadFile, value.graduationCertUrl)),
+        healthProblems: record_opt_to_undefined(from_candid_opt_n13(_uploadFile, _downloadFile, value.healthProblems)),
+        class10CertUrl: record_opt_to_undefined(from_candid_opt_n13(_uploadFile, _downloadFile, value.class10CertUrl)),
+        guardianContact: record_opt_to_undefined(from_candid_opt_n13(_uploadFile, _downloadFile, value.guardianContact)),
         dateOfBirth: value.dateOfBirth,
+        mentionCommunity: record_opt_to_undefined(from_candid_opt_n13(_uploadFile, _downloadFile, value.mentionCommunity)),
         annualIncome: value.annualIncome,
+        identificationMark: record_opt_to_undefined(from_candid_opt_n13(_uploadFile, _downloadFile, value.identificationMark)),
         submittedAt: value.submittedAt,
+        localGuardianMobile: record_opt_to_undefined(from_candid_opt_n13(_uploadFile, _downloadFile, value.localGuardianMobile)),
         photoUrl: value.photoUrl,
         reviewNote: value.reviewNote,
+        guardianRelationship: record_opt_to_undefined(from_candid_opt_n13(_uploadFile, _downloadFile, value.guardianRelationship)),
         applicantMobile: value.applicantMobile,
-        reviewedAt: record_opt_to_undefined(from_candid_opt_n15(_uploadFile, _downloadFile, value.reviewedAt)),
+        reviewedAt: record_opt_to_undefined(from_candid_opt_n16(_uploadFile, _downloadFile, value.reviewedAt)),
         district: value.district,
+        courseDuration: record_opt_to_undefined(from_candid_opt_n13(_uploadFile, _downloadFile, value.courseDuration)),
         state: value.state,
         fatherName: value.fatherName,
+        bloodGroup: record_opt_to_undefined(from_candid_opt_n13(_uploadFile, _downloadFile, value.bloodGroup)),
         address: value.address,
+        class12CertUrl: record_opt_to_undefined(from_candid_opt_n13(_uploadFile, _downloadFile, value.class12CertUrl)),
         incomeCertUrl: value.incomeCertUrl,
         category: value.category,
         pinCode: value.pinCode,
+        academicRowsJson: record_opt_to_undefined(from_candid_opt_n13(_uploadFile, _downloadFile, value.academicRowsJson)),
+        courseName: record_opt_to_undefined(from_candid_opt_n13(_uploadFile, _downloadFile, value.courseName)),
+        guardianName: record_opt_to_undefined(from_candid_opt_n13(_uploadFile, _downloadFile, value.guardianName)),
         classYear: value.classYear,
+        currentYearSemester: record_opt_to_undefined(from_candid_opt_n13(_uploadFile, _downloadFile, value.currentYearSemester)),
+        presentAddress: record_opt_to_undefined(from_candid_opt_n13(_uploadFile, _downloadFile, value.presentAddress)),
+        guardianOccupation: record_opt_to_undefined(from_candid_opt_n13(_uploadFile, _downloadFile, value.guardianOccupation)),
+        photoIdentityNo: record_opt_to_undefined(from_candid_opt_n13(_uploadFile, _downloadFile, value.photoIdentityNo)),
         casteCertUrl: value.casteCertUrl
     };
 }
@@ -873,7 +979,7 @@ function from_candid_record_n5(_uploadFile: (file: ExternalBlob) => Promise<Uint
         topped_up_amount: record_opt_to_undefined(from_candid_opt_n7(_uploadFile, _downloadFile, value.topped_up_amount))
     };
 }
-function from_candid_variant_n14(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+function from_candid_variant_n15(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     pending: null;
 } | {
     approved: null;
@@ -882,7 +988,7 @@ function from_candid_variant_n14(_uploadFile: (file: ExternalBlob) => Promise<Ui
 }): ApplicationStatus {
     return "pending" in value ? ApplicationStatus.pending : "approved" in value ? ApplicationStatus.approved : "rejected" in value ? ApplicationStatus.rejected : value;
 }
-function from_candid_variant_n18(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+function from_candid_variant_n19(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     admin: null;
 } | {
     user: null;
@@ -894,11 +1000,11 @@ function from_candid_variant_n18(_uploadFile: (file: ExternalBlob) => Promise<Ui
 function from_candid_vec_n10(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_AdmissionApplication>): Array<AdmissionApplication> {
     return value.map((x)=>from_candid_AdmissionApplication_n11(_uploadFile, _downloadFile, x));
 }
-function to_candid_AdmissionApplication_n19(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: AdmissionApplication): _AdmissionApplication {
-    return to_candid_record_n20(_uploadFile, _downloadFile, value);
+function to_candid_AdmissionApplication_n20(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: AdmissionApplication): _AdmissionApplication {
+    return to_candid_record_n21(_uploadFile, _downloadFile, value);
 }
-function to_candid_ApplicationStatus_n21(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: ApplicationStatus): _ApplicationStatus {
-    return to_candid_variant_n22(_uploadFile, _downloadFile, value);
+function to_candid_ApplicationStatus_n22(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: ApplicationStatus): _ApplicationStatus {
+    return to_candid_variant_n23(_uploadFile, _downloadFile, value);
 }
 function to_candid_UserRole_n8(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UserRole): _UserRole {
     return to_candid_variant_n9(_uploadFile, _downloadFile, value);
@@ -909,69 +1015,135 @@ function to_candid__CaffeineStorageRefillInformation_n2(_uploadFile: (file: Exte
 function to_candid_opt_n1(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _CaffeineStorageRefillInformation | null): [] | [__CaffeineStorageRefillInformation] {
     return value === null ? candid_none() : candid_some(to_candid__CaffeineStorageRefillInformation_n2(_uploadFile, _downloadFile, value));
 }
-function to_candid_record_n20(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+function to_candid_record_n21(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     id: number;
+    institutionAddress?: string;
     status: ApplicationStatus;
+    residenceCertUrl?: string;
+    localGuardianName?: string;
     applicantName: string;
+    photoIdentityType?: string;
     institutionName: string;
+    graduationCertUrl?: string;
+    healthProblems?: string;
+    class10CertUrl?: string;
+    guardianContact?: string;
     dateOfBirth: string;
+    mentionCommunity?: string;
     annualIncome: string;
+    identificationMark?: string;
     submittedAt: Time;
+    localGuardianMobile?: string;
     photoUrl: string;
     reviewNote: string;
+    guardianRelationship?: string;
     applicantMobile: string;
     reviewedAt?: Time;
     district: string;
+    courseDuration?: string;
     state: string;
     fatherName: string;
+    bloodGroup?: string;
     address: string;
+    class12CertUrl?: string;
     incomeCertUrl: string;
     category: string;
     pinCode: string;
+    academicRowsJson?: string;
+    courseName?: string;
+    guardianName?: string;
     classYear: string;
+    currentYearSemester?: string;
+    presentAddress?: string;
+    guardianOccupation?: string;
+    photoIdentityNo?: string;
     casteCertUrl: string;
 }): {
     id: number;
+    institutionAddress: [] | [string];
     status: _ApplicationStatus;
+    residenceCertUrl: [] | [string];
+    localGuardianName: [] | [string];
     applicantName: string;
+    photoIdentityType: [] | [string];
     institutionName: string;
+    graduationCertUrl: [] | [string];
+    healthProblems: [] | [string];
+    class10CertUrl: [] | [string];
+    guardianContact: [] | [string];
     dateOfBirth: string;
+    mentionCommunity: [] | [string];
     annualIncome: string;
+    identificationMark: [] | [string];
     submittedAt: _Time;
+    localGuardianMobile: [] | [string];
     photoUrl: string;
     reviewNote: string;
+    guardianRelationship: [] | [string];
     applicantMobile: string;
     reviewedAt: [] | [_Time];
     district: string;
+    courseDuration: [] | [string];
     state: string;
     fatherName: string;
+    bloodGroup: [] | [string];
     address: string;
+    class12CertUrl: [] | [string];
     incomeCertUrl: string;
     category: string;
     pinCode: string;
+    academicRowsJson: [] | [string];
+    courseName: [] | [string];
+    guardianName: [] | [string];
     classYear: string;
+    currentYearSemester: [] | [string];
+    presentAddress: [] | [string];
+    guardianOccupation: [] | [string];
+    photoIdentityNo: [] | [string];
     casteCertUrl: string;
 } {
     return {
         id: value.id,
-        status: to_candid_ApplicationStatus_n21(_uploadFile, _downloadFile, value.status),
+        institutionAddress: value.institutionAddress ? candid_some(value.institutionAddress) : candid_none(),
+        status: to_candid_ApplicationStatus_n22(_uploadFile, _downloadFile, value.status),
+        residenceCertUrl: value.residenceCertUrl ? candid_some(value.residenceCertUrl) : candid_none(),
+        localGuardianName: value.localGuardianName ? candid_some(value.localGuardianName) : candid_none(),
         applicantName: value.applicantName,
+        photoIdentityType: value.photoIdentityType ? candid_some(value.photoIdentityType) : candid_none(),
         institutionName: value.institutionName,
+        graduationCertUrl: value.graduationCertUrl ? candid_some(value.graduationCertUrl) : candid_none(),
+        healthProblems: value.healthProblems ? candid_some(value.healthProblems) : candid_none(),
+        class10CertUrl: value.class10CertUrl ? candid_some(value.class10CertUrl) : candid_none(),
+        guardianContact: value.guardianContact ? candid_some(value.guardianContact) : candid_none(),
         dateOfBirth: value.dateOfBirth,
+        mentionCommunity: value.mentionCommunity ? candid_some(value.mentionCommunity) : candid_none(),
         annualIncome: value.annualIncome,
+        identificationMark: value.identificationMark ? candid_some(value.identificationMark) : candid_none(),
         submittedAt: value.submittedAt,
+        localGuardianMobile: value.localGuardianMobile ? candid_some(value.localGuardianMobile) : candid_none(),
         photoUrl: value.photoUrl,
         reviewNote: value.reviewNote,
+        guardianRelationship: value.guardianRelationship ? candid_some(value.guardianRelationship) : candid_none(),
         applicantMobile: value.applicantMobile,
         reviewedAt: value.reviewedAt ? candid_some(value.reviewedAt) : candid_none(),
         district: value.district,
+        courseDuration: value.courseDuration ? candid_some(value.courseDuration) : candid_none(),
         state: value.state,
         fatherName: value.fatherName,
+        bloodGroup: value.bloodGroup ? candid_some(value.bloodGroup) : candid_none(),
         address: value.address,
+        class12CertUrl: value.class12CertUrl ? candid_some(value.class12CertUrl) : candid_none(),
         incomeCertUrl: value.incomeCertUrl,
         category: value.category,
         pinCode: value.pinCode,
+        academicRowsJson: value.academicRowsJson ? candid_some(value.academicRowsJson) : candid_none(),
+        courseName: value.courseName ? candid_some(value.courseName) : candid_none(),
+        guardianName: value.guardianName ? candid_some(value.guardianName) : candid_none(),
         classYear: value.classYear,
+        currentYearSemester: value.currentYearSemester ? candid_some(value.currentYearSemester) : candid_none(),
+        presentAddress: value.presentAddress ? candid_some(value.presentAddress) : candid_none(),
+        guardianOccupation: value.guardianOccupation ? candid_some(value.guardianOccupation) : candid_none(),
+        photoIdentityNo: value.photoIdentityNo ? candid_some(value.photoIdentityNo) : candid_none(),
         casteCertUrl: value.casteCertUrl
     };
 }
@@ -984,7 +1156,7 @@ function to_candid_record_n3(_uploadFile: (file: ExternalBlob) => Promise<Uint8A
         proposed_top_up_amount: value.proposed_top_up_amount ? candid_some(value.proposed_top_up_amount) : candid_none()
     };
 }
-function to_candid_variant_n22(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: ApplicationStatus): {
+function to_candid_variant_n23(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: ApplicationStatus): {
     pending: null;
 } | {
     approved: null;

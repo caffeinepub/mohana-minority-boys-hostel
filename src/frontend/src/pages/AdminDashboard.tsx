@@ -54,7 +54,7 @@ import {
   X,
   XCircle,
 } from "lucide-react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 // xlsx is loaded dynamically at runtime via CDN (not a bundled dependency)
 import type {
@@ -75,6 +75,7 @@ import {
   useApproveApplication,
   useAssignUserRole,
   useBulkAddStudents,
+  useDeleteAllStudents,
   useGetAllApplications,
   useGetAllFees,
   useGetAllGalleryImages,
@@ -700,6 +701,8 @@ function StudentsManagement() {
   const { data: students = [], isLoading } = useGetAllStudents();
   const addOrUpdate = useAddOrUpdateStudent();
   const remove = useRemoveStudent();
+  const deleteAll = useDeleteAllStudents();
+  const [showDeleteAll, setShowDeleteAll] = useState(false);
   const bulkAdd = useBulkAddStudents();
 
   const [showForm, setShowForm] = useState(false);
@@ -735,6 +738,27 @@ function StudentsManagement() {
     await remove.mutateAsync(id);
     toast.success("Student removed");
     setDeleteId(null);
+  };
+
+  const handleDeleteAll = async () => {
+    try {
+      const toDelete = [...students];
+      if (toDelete.length === 0) {
+        toast.success("No student records to delete");
+        setShowDeleteAll(false);
+        return;
+      }
+      for (const student of toDelete) {
+        await remove.mutateAsync(student.id);
+      }
+      toast.success(`All ${toDelete.length} student records deleted`);
+      setShowDeleteAll(false);
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Failed to delete students",
+      );
+      setShowDeleteAll(false);
+    }
   };
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -825,8 +849,50 @@ function StudentsManagement() {
           >
             <Plus className="w-4 h-4" /> Add Student
           </Button>
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={() => setShowDeleteAll(true)}
+            className="font-body text-xs gap-1.5"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+            Delete All
+          </Button>
         </div>
       </div>
+
+      {/* Delete All Confirmation */}
+      <Dialog open={showDeleteAll} onOpenChange={setShowDeleteAll}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="font-display text-destructive">
+              Delete All Students
+            </DialogTitle>
+          </DialogHeader>
+          <p className="font-body text-sm text-muted-foreground">
+            This will permanently delete <strong>all student records</strong>.
+            This action cannot be undone.
+          </p>
+          <DialogFooter>
+            <Button
+              variant="ghost"
+              onClick={() => setShowDeleteAll(false)}
+              className="font-body"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteAll}
+              disabled={deleteAll.isPending}
+              className="font-body gap-2"
+            >
+              <Trash2 className="w-4 h-4" />
+              {deleteAll.isPending ? "Deleting..." : "Delete All"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* ── Excel Upload Card ────────────────────────────────────────────── */}
       <Card className="border-border bg-muted/20">
@@ -1730,18 +1796,20 @@ function SiteSettingsPanel() {
 
   const [initialized, setInitialized] = useState(false);
 
-  if (settings && !initialized) {
-    setForm({
-      admissionLink: settings.admissionLink ?? "",
-      scholarshipLink: settings.scholarshipLink ?? "",
-      announcementText: settings.announcementText ?? "",
-      seatsAvailable: settings.seatsAvailable ?? "50+",
-      studentsEnrolled: settings.studentsEnrolled ?? "45+",
-      yearsOfService: settings.yearsOfService ?? "15+",
-      scholarshipsFacilitated: settings.scholarshipsFacilitated ?? "200+",
-    });
-    setInitialized(true);
-  }
+  useEffect(() => {
+    if (settings && !initialized) {
+      setForm({
+        admissionLink: settings.admissionLink ?? "",
+        scholarshipLink: settings.scholarshipLink ?? "",
+        announcementText: settings.announcementText ?? "",
+        seatsAvailable: settings.seatsAvailable ?? "50+",
+        studentsEnrolled: settings.studentsEnrolled ?? "45+",
+        yearsOfService: settings.yearsOfService ?? "15+",
+        scholarshipsFacilitated: settings.scholarshipsFacilitated ?? "200+",
+      });
+      setInitialized(true);
+    }
+  }, [settings, initialized]);
 
   const handleSave = async () => {
     await updateSettings.mutateAsync(form);

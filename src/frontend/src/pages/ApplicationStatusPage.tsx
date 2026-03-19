@@ -19,7 +19,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { motion } from "motion/react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { ApplicationStatus } from "../backend.d";
 import { useActor } from "../hooks/useActor";
 import { useGetMyApplication, useLoginApplicant } from "../hooks/useQueries";
@@ -40,12 +40,36 @@ interface LocalFormData {
   dateOfBirth: string;
   applicantMobile: string;
   category: string;
+  mentionCommunity?: string;
+  photoIdentityType?: string;
+  photoIdentityNo?: string;
   annualIncome: string;
+  guardianName?: string;
+  guardianRelationship?: string;
+  guardianContact?: string;
+  guardianOccupation?: string;
+  localGuardianName?: string;
+  localGuardianMobile?: string;
+  presentAddress?: string;
   address: string;
   district: string;
   state: string;
   pinCode: string;
+  bloodGroup?: string;
+  identificationMark?: string;
+  healthProblems?: string;
+  academicRows?: Array<{
+    exam: string;
+    board: string;
+    year: string;
+    marks: string;
+    percentage: string;
+  }>;
+  courseName?: string;
+  courseDuration?: string;
+  currentYearSemester?: string;
   institutionName: string;
+  institutionAddress?: string;
   classYear: string;
   photoUrl: string;
   incomeCertUrl: string;
@@ -64,8 +88,6 @@ export default function ApplicationStatusPage() {
   const loginApplicant = useLoginApplicant();
   const { actor } = useActor();
   const [sessionReady, setSessionReady] = useState(false);
-  const printRef = useRef<HTMLDivElement>(null);
-
   const loginApplicantMutate = loginApplicant.mutateAsync;
 
   useEffect(() => {
@@ -106,389 +128,229 @@ export default function ApplicationStatusPage() {
   };
 
   const handleDownloadPDF = () => {
-    window.print();
-  };
+    const app = application;
+    if (!app) return;
+    const localData: LocalFormData | null = (() => {
+      try {
+        const raw = localStorage.getItem("applicationFormData");
+        return raw ? JSON.parse(raw) : null;
+      } catch {
+        return null;
+      }
+    })();
 
-  const app = application;
+    const fmtDate = (ts?: bigint | number) => {
+      if (!ts) return "—";
+      const ms = typeof ts === "bigint" ? Number(ts) : ts;
+      return new Date(ms).toLocaleDateString("en-IN", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      });
+    };
+
+    const docStatus = (url?: string) =>
+      url
+        ? '<span style="color:#16a34a;font-weight:bold;">✓ Uploaded</span>'
+        : '<span style="color:#dc2626;font-weight:bold;">✗ Not Uploaded</span>';
+
+    const str = (v?: string | null) => v || "—";
+
+    // Build academic rows table
+    const academicRowsHtml = (() => {
+      const rows = (() => {
+        try {
+          if (app.academicRowsJson) return JSON.parse(app.academicRowsJson);
+          return localData?.academicRows || [];
+        } catch {
+          return localData?.academicRows || [];
+        }
+      })();
+      if (!rows || rows.length === 0) {
+        return '<tr><td colspan="5" style="text-align:center;color:#999;">No academic records provided</td></tr>';
+      }
+      return rows
+        .map(
+          (r) =>
+            `<tr><td>${r.exam || "—"}</td><td>${r.board || "—"}</td><td>${r.year || "—"}</td><td>${r.marks || "—"}</td><td>${r.percentage || "—"}</td></tr>`,
+        )
+        .join("");
+    })();
+
+    const html = `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<title>Application Form - PMMH</title>
+<style>
+  body { font-family: serif; padding: 24px; color: #222; font-size: 13px; }
+  table { width: 100%; border-collapse: collapse; margin-bottom: 14px; }
+  td { padding: 5px 9px; border: 1px solid #ccc; }
+  .label { background: #f0f4ff; font-weight: bold; color: #1a3a6e; width: 38%; }
+  .section-header { background: #1a3a6e; color: white; padding: 6px 10px; font-weight: bold; font-size: 13px; margin-bottom: 0; letter-spacing: 0.5px; }
+  .header { text-align: center; border-bottom: 3px solid #1a3a6e; padding-bottom: 12px; margin-bottom: 16px; }
+  .logos { display: flex; align-items: center; justify-content: center; gap: 20px; }
+  .center-text { text-align: center; }
+  .declaration { border: 1px solid #ccc; padding: 10px; font-size: 11px; color: #444; margin-bottom: 14px; background: #fafafa; }
+  .signatures { display: flex; justify-content: space-between; margin-top: 30px; }
+  .sig-box { text-align: center; }
+  .sig-line { border-top: 1px solid #888; width: 180px; margin: 0 auto 4px; }
+  .footer-note { text-align: center; font-size: 11px; color: #555; margin-top: 20px; border-top: 1px solid #ccc; padding-top: 8px; }
+  .th { background: #1a3a6e; color: white; padding: 5px 9px; font-weight: bold; }
+  @media print { body { padding: 12px; } }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="logos">
+    <img src="${window.location.origin}/assets/uploads/odisha-logo-1.jpg" width="70" height="70" style="object-fit:contain;" alt="Odisha Govt"/>
+    <div class="center-text">
+      <div style="font-size:11px;color:#555;letter-spacing:1px;text-transform:uppercase;">Government of Odisha</div>
+      <div style="font-size:20px;font-weight:bold;color:#1a3a6e;margin:2px 0;">Post Matric Minority Boys Hostel</div>
+      <div style="font-size:13px;font-weight:bold;color:#1a3a6e;">Mohana, Gajapati District, Odisha — 761015</div>
+      <div style="font-size:11px;color:#555;margin-top:3px;">Under ST &amp; SC Development M&amp;BC Department of Odisha</div>
+    </div>
+    <img src="${window.location.origin}/assets/uploads/Ministry_of_Minority_Affairs-2.webp" width="70" height="70" style="object-fit:contain;" alt="Ministry of Minority Affairs"/>
+  </div>
+  <div style="font-size:15px;font-weight:bold;color:#c8860a;letter-spacing:1px;margin-top:8px;">APPLICATION FOR HOSTEL ADMISSION</div>
+  <div style="font-size:11px;color:#777;margin-top:2px;">Academic Session — ${new Date().getFullYear()}–${new Date().getFullYear() + 1}</div>
+</div>
+
+<!-- APPLICATION INFO ROW -->
+<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;">
+  <table style="flex:1;margin-bottom:0;">
+    <tbody>
+      <tr><td class="label">Application No.</td><td>APP-${app.id || "PENDING"}</td></tr>
+      <tr><td class="label">Date of Submission</td><td>${localData ? fmtDate(localData.submittedAt) : fmtDate(app.submittedAt)}</td></tr>
+    </tbody>
+  </table>
+  ${app.photoUrl ? `<div style="margin-left:16px;text-align:center;flex-shrink:0;"><img src="${app.photoUrl}" width="90" height="110" style="object-fit:cover;border:2px solid #1a3a6e;" alt="Photo"/><div style="font-size:10px;color:#666;margin-top:4px;">Passport Photo</div></div>` : ""}
+</div>
+
+<!-- SECTION 1: PERSONAL DETAILS -->
+<div class="section-header">1. PERSONAL DETAILS</div>
+<table>
+  <tbody>
+    <tr><td class="label">Full Name of Applicant</td><td>${str(localData?.applicantName || app.applicantName)}</td></tr>
+    <tr><td class="label">Father's Name</td><td>${str(localData?.fatherName || app.fatherName)}</td></tr>
+    <tr><td class="label">Date of Birth</td><td>${str(localData?.dateOfBirth || app.dateOfBirth)}</td></tr>
+    <tr><td class="label">Mobile Number</td><td>+91 ${str(localData?.applicantMobile || app.applicantMobile)}</td></tr>
+    <tr><td class="label">Community / Category</td><td>${str(localData?.category || app.category)}</td></tr>
+    ${localData?.mentionCommunity || app.mentionCommunity ? `<tr><td class="label">Mention Community</td><td>${localData?.mentionCommunity || app.mentionCommunity}</td></tr>` : ""}
+    ${localData?.photoIdentityType || app.photoIdentityType ? `<tr><td class="label">Photo Identity Type</td><td>${localData?.photoIdentityType || app.photoIdentityType}</td></tr>` : ""}
+    ${localData?.photoIdentityNo || app.photoIdentityNo ? `<tr><td class="label">Photo Identity No.</td><td>${localData?.photoIdentityNo || app.photoIdentityNo}</td></tr>` : ""}
+    <tr><td class="label">Annual Family Income</td><td>${str(localData?.annualIncome || app.annualIncome)}</td></tr>
+  </tbody>
+</table>
+
+<!-- SECTION 2: GUARDIAN & HEALTH DETAILS -->
+<div class="section-header">2. GUARDIAN &amp; HEALTH DETAILS</div>
+<table>
+  <tbody>
+    <tr><td class="label">Guardian's Name</td><td>${str(localData?.guardianName || app.guardianName)}</td></tr>
+    <tr><td class="label">Relationship with Guardian</td><td>${str(localData?.guardianRelationship || app.guardianRelationship)}</td></tr>
+    <tr><td class="label">Guardian's Contact No.</td><td>${str(localData?.guardianContact || app.guardianContact)}</td></tr>
+    <tr><td class="label">Guardian's Occupation</td><td>${str(localData?.guardianOccupation || app.guardianOccupation)}</td></tr>
+    <tr><td class="label">Local Guardian's Name</td><td>${str(localData?.localGuardianName || app.localGuardianName)}</td></tr>
+    <tr><td class="label">Local Guardian's Mobile</td><td>${str(localData?.localGuardianMobile || app.localGuardianMobile)}</td></tr>
+    <tr><td class="label">Present Address</td><td>${str(localData?.presentAddress || app.presentAddress)}</td></tr>
+    <tr><td class="label">Permanent Address</td><td>${str(localData?.address || app.address)}</td></tr>
+    <tr><td class="label">District</td><td>${str(localData?.district || app.district)}</td></tr>
+    <tr><td class="label">State</td><td>${str(localData?.state || app.state)}</td></tr>
+    <tr><td class="label">PIN Code</td><td>${str(localData?.pinCode || app.pinCode)}</td></tr>
+    <tr><td class="label">Blood Group</td><td>${str(localData?.bloodGroup || app.bloodGroup)}</td></tr>
+    <tr><td class="label">Identification Mark</td><td>${str(localData?.identificationMark || app.identificationMark)}</td></tr>
+    <tr><td class="label">Health Problems (if any)</td><td>${str(localData?.healthProblems || app.healthProblems)}</td></tr>
+  </tbody>
+</table>
+
+<!-- SECTION 3: ACADEMIC DETAILS -->
+<div class="section-header">3. ACADEMIC DETAILS</div>
+<table>
+  <thead>
+    <tr>
+      <td class="th">Examination</td>
+      <td class="th">Board / University</td>
+      <td class="th">Year</td>
+      <td class="th">Max Marks</td>
+      <td class="th">Percentage</td>
+    </tr>
+  </thead>
+  <tbody>
+    ${academicRowsHtml}
+  </tbody>
+</table>
+<table>
+  <tbody>
+    <tr><td class="label">Course Name</td><td>${str(localData?.courseName || app.courseName)}</td></tr>
+    <tr><td class="label">Course Duration</td><td>${str(localData?.courseDuration || app.courseDuration)}</td></tr>
+    <tr><td class="label">Current Year / Semester</td><td>${str(localData?.currentYearSemester || app.currentYearSemester || localData?.classYear || app.classYear)}</td></tr>
+    <tr><td class="label">Institution Name</td><td>${str(localData?.institutionName || app.institutionName)}</td></tr>
+    <tr><td class="label">Institution Address</td><td>${str(localData?.institutionAddress || app.institutionAddress)}</td></tr>
+  </tbody>
+</table>
+
+<!-- SECTION 4: DOCUMENTS SUBMITTED -->
+<div class="section-header">4. DOCUMENTS SUBMITTED</div>
+<table>
+  <tbody>
+    <tr><td class="label">Passport Size Photo</td><td>${docStatus(localData?.photoUrl || app.photoUrl)}</td></tr>
+    <tr><td class="label">Income Certificate</td><td>${docStatus(localData?.incomeCertUrl || app.incomeCertUrl)}</td></tr>
+    <tr><td class="label">Caste / Community Certificate</td><td>${docStatus(localData?.casteCertUrl || app.casteCertUrl)}</td></tr>
+    <tr><td class="label">Residence Certificate</td><td>${docStatus(localData?.residenceCertUrl || app.residenceCertUrl)}</td></tr>
+    <tr><td class="label">Class 10th Certificate</td><td>${docStatus(localData?.class10CertUrl || app.class10CertUrl)}</td></tr>
+    <tr><td class="label">Class 12th Certificate</td><td>${docStatus(localData?.class12CertUrl || app.class12CertUrl)}</td></tr>
+    <tr><td class="label">Graduation Certificate</td><td>${docStatus(localData?.graduationCertUrl || app.graduationCertUrl)}</td></tr>
+  </tbody>
+</table>
+
+<!-- DECLARATION -->
+<div class="declaration">
+  <strong>Declaration:</strong> I hereby declare that all the information furnished above is true and correct to the best of my knowledge and belief. I understand that providing false information may lead to cancellation of my application / hostel admission. I agree to abide by the rules and regulations of the hostel.
+</div>
+
+<!-- SIGNATURES -->
+<div class="signatures">
+  <div class="sig-box">
+    <div class="sig-line"></div>
+    <div style="font-size:12px;">Signature of Applicant</div>
+    <div style="margin-top:4px;font-size:11px;color:#666;">${str(localData?.applicantName || app.applicantName)}</div>
+  </div>
+  <div class="sig-box">
+    <div class="sig-line"></div>
+    <div style="font-size:12px;">Signature of Parent / Guardian</div>
+    <div style="margin-top:4px;font-size:11px;color:#666;">${str(localData?.guardianName)}</div>
+  </div>
+  <div class="sig-box">
+    <div class="sig-line"></div>
+    <div style="font-size:12px;">Signature of Superintendent</div>
+    <div style="margin-top:4px;font-size:11px;color:#666;">Post Matric Minority Boys Hostel</div>
+  </div>
+</div>
+
+<div class="footer-note">
+  This hostel is supported by ST &amp; SC Development M&amp;BC Department of Odisha and Ministry of Minority Affairs of India
+</div>
+</body>
+</html>`;
+
+    const win = window.open("", "_blank");
+    if (!win) {
+      alert("Please allow popups and try again.");
+      return;
+    }
+    win.document.write(html);
+    win.document.close();
+    win.onload = () => {
+      win.focus();
+      win.print();
+    };
+  };
 
   return (
     <div className="min-h-screen bg-background">
-      {/* ===== PRINT-ONLY APPLICATION FORM ===== */}
-      {app && (
-        <div
-          ref={printRef}
-          className="hidden print:block print:fixed print:inset-0 print:bg-white print:z-[9999] print:p-8 print:overflow-auto"
-          style={{ fontFamily: "serif" }}
-        >
-          {/* Header */}
-          <div
-            style={{
-              textAlign: "center",
-              borderBottom: "2px solid #1a3a6e",
-              paddingBottom: "12px",
-              marginBottom: "16px",
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "16px",
-                marginBottom: "8px",
-              }}
-            >
-              <img
-                src="/assets/generated/odisha-govt-logo-transparent.dim_200x200.png"
-                alt="Odisha Government"
-                style={{ width: "64px", height: "64px", objectFit: "contain" }}
-              />
-              <div>
-                <div
-                  style={{
-                    fontSize: "11px",
-                    color: "#555",
-                    letterSpacing: "1px",
-                    textTransform: "uppercase",
-                  }}
-                >
-                  Government of Odisha
-                </div>
-                <div
-                  style={{
-                    fontSize: "18px",
-                    fontWeight: "bold",
-                    color: "#1a3a6e",
-                    lineHeight: 1.2,
-                  }}
-                >
-                  Post Matric Minority Boys Hostel
-                </div>
-                <div
-                  style={{
-                    fontSize: "14px",
-                    fontWeight: "bold",
-                    color: "#1a3a6e",
-                  }}
-                >
-                  Mohana, Gajapati District, Odisha — 761015
-                </div>
-                <div
-                  style={{ fontSize: "11px", color: "#555", marginTop: "2px" }}
-                >
-                  Under Ministry of Minority Affairs, Govt. of India
-                </div>
-              </div>
-              <img
-                src="/assets/generated/ministry-minority-affairs-logo-transparent.dim_200x200.png"
-                alt="Ministry of Minority Affairs"
-                style={{ width: "64px", height: "64px", objectFit: "contain" }}
-              />
-            </div>
-            <div
-              style={{
-                fontSize: "15px",
-                fontWeight: "bold",
-                color: "#c8860a",
-                letterSpacing: "1px",
-                marginTop: "6px",
-              }}
-            >
-              APPLICATION FOR HOSTEL ADMISSION
-            </div>
-            <div style={{ fontSize: "11px", color: "#777", marginTop: "2px" }}>
-              Academic Session — {new Date().getFullYear()}–
-              {new Date().getFullYear() + 1}
-            </div>
-          </div>
-
-          {/* Applicant photo */}
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              marginBottom: "16px",
-            }}
-          >
-            <div style={{ flex: 1 }}>
-              <table
-                style={{
-                  width: "100%",
-                  borderCollapse: "collapse",
-                  fontSize: "12px",
-                }}
-              >
-                <tbody>
-                  {[
-                    ["Application No.", `APP-${app.id || "PENDING"}`],
-                    [
-                      "Date of Submission",
-                      localFormData
-                        ? formatDate(localFormData.submittedAt)
-                        : formatDate(app.submittedAt),
-                    ],
-                    ["Full Name", app.applicantName],
-                    ["Father's Name", app.fatherName],
-                    ["Date of Birth", app.dateOfBirth],
-                    ["Mobile Number", `+91 ${app.applicantMobile}`],
-                    ["Community / Category", app.category],
-                    ["Annual Family Income", app.annualIncome],
-                  ].map(([label, value]) => (
-                    <tr key={label} style={{ borderBottom: "1px solid #eee" }}>
-                      <td
-                        style={{
-                          padding: "5px 8px",
-                          fontWeight: "bold",
-                          color: "#444",
-                          width: "40%",
-                          background: "#f8f8f8",
-                        }}
-                      >
-                        {label}
-                      </td>
-                      <td style={{ padding: "5px 8px", color: "#222" }}>
-                        {value}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            {app.photoUrl && (
-              <div style={{ marginLeft: "16px", textAlign: "center" }}>
-                <img
-                  src={app.photoUrl}
-                  alt="Applicant portrait"
-                  style={{
-                    width: "90px",
-                    height: "110px",
-                    objectFit: "cover",
-                    border: "1px solid #ccc",
-                  }}
-                />
-                <div
-                  style={{ fontSize: "10px", color: "#666", marginTop: "4px" }}
-                >
-                  Passport Photo
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Address & Education */}
-          <div style={{ marginBottom: "14px" }}>
-            <div
-              style={{
-                background: "#1a3a6e",
-                color: "white",
-                padding: "4px 8px",
-                fontWeight: "bold",
-                fontSize: "12px",
-                marginBottom: "6px",
-              }}
-            >
-              ADDRESS &amp; EDUCATION DETAILS
-            </div>
-            <table
-              style={{
-                width: "100%",
-                borderCollapse: "collapse",
-                fontSize: "12px",
-              }}
-            >
-              <tbody>
-                {[
-                  ["Permanent Address", app.address],
-                  ["District", app.district],
-                  ["State", app.state],
-                  ["PIN Code", app.pinCode],
-                  ["Institution Name", app.institutionName],
-                  ["Class / Year", app.classYear],
-                ].map(([label, value]) => (
-                  <tr key={label} style={{ borderBottom: "1px solid #eee" }}>
-                    <td
-                      style={{
-                        padding: "5px 8px",
-                        fontWeight: "bold",
-                        color: "#444",
-                        width: "40%",
-                        background: "#f8f8f8",
-                      }}
-                    >
-                      {label}
-                    </td>
-                    <td style={{ padding: "5px 8px", color: "#222" }}>
-                      {value}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Documents Submitted */}
-          <div style={{ marginBottom: "14px" }}>
-            <div
-              style={{
-                background: "#1a3a6e",
-                color: "white",
-                padding: "4px 8px",
-                fontWeight: "bold",
-                fontSize: "12px",
-                marginBottom: "6px",
-              }}
-            >
-              DOCUMENTS SUBMITTED
-            </div>
-            <table
-              style={{
-                width: "100%",
-                borderCollapse: "collapse",
-                fontSize: "12px",
-              }}
-            >
-              <tbody>
-                {[
-                  [
-                    "Passport Size Photo",
-                    app.photoUrl ? "Uploaded" : "Not uploaded",
-                  ],
-                  [
-                    "Income Certificate",
-                    app.incomeCertUrl ? "Uploaded" : "Not uploaded",
-                  ],
-                  [
-                    "Caste / Community Certificate",
-                    app.casteCertUrl ? "Uploaded" : "Not uploaded",
-                  ],
-                  [
-                    "Residence Certificate",
-                    localFormData?.residenceCertUrl
-                      ? "Uploaded"
-                      : "Not uploaded",
-                  ],
-                  [
-                    "Class 10th Certificate",
-                    localFormData?.class10CertUrl ? "Uploaded" : "Not uploaded",
-                  ],
-                  [
-                    "Class 12th Certificate",
-                    localFormData?.class12CertUrl ? "Uploaded" : "Not uploaded",
-                  ],
-                  [
-                    "Graduation Certificate",
-                    localFormData?.graduationCertUrl
-                      ? "Uploaded"
-                      : "Not uploaded",
-                  ],
-                ].map(([label, value]) => (
-                  <tr key={label} style={{ borderBottom: "1px solid #eee" }}>
-                    <td
-                      style={{
-                        padding: "5px 8px",
-                        fontWeight: "bold",
-                        color: "#444",
-                        width: "50%",
-                        background: "#f8f8f8",
-                      }}
-                    >
-                      {label}
-                    </td>
-                    <td
-                      style={{
-                        padding: "5px 8px",
-                        color: value === "Uploaded" ? "#16a34a" : "#dc2626",
-                        fontWeight: "bold",
-                      }}
-                    >
-                      {value === "Uploaded" ? "✓ Uploaded" : "✗ Not uploaded"}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Declaration */}
-          <div
-            style={{
-              border: "1px solid #ccc",
-              padding: "10px",
-              marginBottom: "14px",
-              fontSize: "11px",
-              color: "#444",
-            }}
-          >
-            <strong>Declaration:</strong> I hereby declare that all the
-            information furnished above is true and correct to the best of my
-            knowledge. I understand that providing false information may lead to
-            cancellation of my application / hostel admission.
-          </div>
-
-          {/* Signatures */}
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              marginTop: "20px",
-              fontSize: "12px",
-            }}
-          >
-            <div style={{ textAlign: "center" }}>
-              <div
-                style={{
-                  borderTop: "1px solid #333",
-                  paddingTop: "4px",
-                  width: "150px",
-                  marginTop: "40px",
-                }}
-              >
-                Applicant's Signature
-              </div>
-            </div>
-            <div style={{ textAlign: "center" }}>
-              <div
-                style={{
-                  borderTop: "1px solid #333",
-                  paddingTop: "4px",
-                  width: "150px",
-                  marginTop: "40px",
-                }}
-              >
-                Parent/Guardian Signature
-              </div>
-            </div>
-            <div style={{ textAlign: "center" }}>
-              <div
-                style={{
-                  borderTop: "1px solid #333",
-                  paddingTop: "4px",
-                  width: "150px",
-                  marginTop: "40px",
-                }}
-              >
-                Hostel Superintendent
-              </div>
-            </div>
-          </div>
-
-          {/* Footer */}
-          <div
-            style={{
-              textAlign: "center",
-              marginTop: "16px",
-              fontSize: "10px",
-              color: "#777",
-              borderTop: "1px solid #ccc",
-              paddingTop: "8px",
-            }}
-          >
-            Post Matric Minority Boys Hostel, Mohana, Gajapati, Odisha — 761015
-            | stsc.odisha.gov.in
-          </div>
-        </div>
-      )}
-
       {/* ===== SCREEN VIEW ===== */}
       {/* Header */}
       <div className="navy-gradient py-8 px-4 print:hidden">

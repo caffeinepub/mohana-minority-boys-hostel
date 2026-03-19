@@ -21,11 +21,11 @@ export interface StaffMember {
 export interface SiteSettings {
     announcementText: string;
     admissionLink: string;
-    scholarshipLink: string;
-    seatsAvailable: string;
     studentsEnrolled: string;
-    yearsOfService: string;
+    scholarshipLink: string;
     scholarshipsFacilitated: string;
+    seatsAvailable: string;
+    yearsOfService: string;
 }
 export type Time = bigint;
 export interface GalleryImage {
@@ -44,24 +44,46 @@ export interface FeesStructure {
 }
 export interface AdmissionApplication {
     id: number;
+    institutionAddress?: string;
     status: ApplicationStatus;
+    residenceCertUrl?: string;
+    localGuardianName?: string;
     applicantName: string;
+    photoIdentityType?: string;
     institutionName: string;
+    graduationCertUrl?: string;
+    healthProblems?: string;
+    class10CertUrl?: string;
+    guardianContact?: string;
     dateOfBirth: string;
+    mentionCommunity?: string;
     annualIncome: string;
+    identificationMark?: string;
     submittedAt: Time;
+    localGuardianMobile?: string;
     photoUrl: string;
     reviewNote: string;
+    guardianRelationship?: string;
     applicantMobile: string;
     reviewedAt?: Time;
     district: string;
+    courseDuration?: string;
     state: string;
     fatherName: string;
+    bloodGroup?: string;
     address: string;
+    class12CertUrl?: string;
     incomeCertUrl: string;
     category: string;
     pinCode: string;
+    academicRowsJson?: string;
+    courseName?: string;
+    guardianName?: string;
     classYear: string;
+    currentYearSemester?: string;
+    presentAddress?: string;
+    guardianOccupation?: string;
+    photoIdentityNo?: string;
     casteCertUrl: string;
 }
 export interface UserProfile {
@@ -95,6 +117,7 @@ export interface backendInterface {
     approveApplication(id: number, note: string): Promise<void>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
     bulkAddStudents(newStudents: Array<Student>): Promise<void>;
+    deleteAllStudents(): Promise<void>;
     getAllApplications(): Promise<Array<AdmissionApplication>>;
     getAllFees(): Promise<Array<FeesStructure>>;
     getAllGalleryImages(): Promise<Array<GalleryImage>>;
