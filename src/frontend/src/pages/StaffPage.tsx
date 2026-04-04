@@ -80,7 +80,7 @@ function StaffAvatar({ member }: { member: StaffMember }) {
       <img
         src={member.photoUrl}
         alt={member.name}
-        className="w-full h-full object-cover"
+        className="w-full h-full object-cover object-top"
       />
     );
   }
@@ -171,7 +171,7 @@ function StaffCard({
     >
       <Card className="h-full card-hover border-border shadow-xs">
         <CardContent className="p-0">
-          <div className="h-40 overflow-hidden rounded-t-lg">
+          <div className="h-48 overflow-hidden rounded-t-lg">
             <StaffAvatar member={member} />
           </div>
           <div className="p-5">

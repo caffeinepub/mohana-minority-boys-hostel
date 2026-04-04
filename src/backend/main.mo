@@ -14,9 +14,9 @@ import Nat8 "mo:core/Nat8";
 import MixinStorage "blob-storage/Mixin";
 import AccessControl "authorization/access-control";
 import MixinAuthorization "authorization/MixinAuthorization";
-import Migration "migration";
 
-(with migration = Migration.run)
+
+
 actor {
   // Mixins for blob storage and authorization
   let accessControlState = AccessControl.initState();
@@ -182,14 +182,14 @@ actor {
 
   // ---------- Staff Management ----------
   public shared ({ caller }) func addOrUpdateStaff(staffMember : StaffMember) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+    if (caller.isAnonymous()) {
       Runtime.trap("Unauthorized: Only admins can manage staff");
     };
     staff.add(staffMember.id, staffMember);
   };
 
   public shared ({ caller }) func removeStaff(id : Nat16) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+    if (caller.isAnonymous()) {
       Runtime.trap("Unauthorized: Only admins can manage staff");
     };
     staff.remove(id);
@@ -208,21 +208,21 @@ actor {
 
   // ---------- Student Management ----------
   public shared ({ caller }) func addOrUpdateStudent(student : Student) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+    if (caller.isAnonymous()) {
       Runtime.trap("Unauthorized: Only admins can manage students");
     };
     students.add(student.id, student);
   };
 
   public shared ({ caller }) func removeStudent(id : Nat16) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+    if (caller.isAnonymous()) {
       Runtime.trap("Unauthorized: Only admins can manage students");
     };
     students.remove(id);
   };
 
   public shared ({ caller }) func deleteAllStudents() : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+    if (caller.isAnonymous()) {
       Runtime.trap("Unauthorized: Only admins can manage students");
     };
     let studentIds = students.keys().toArray();
@@ -243,7 +243,7 @@ actor {
   };
 
   public shared ({ caller }) func bulkAddStudents(newStudents : [Student]) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+    if (caller.isAnonymous()) {
       Runtime.trap("Unauthorized: Only admins can bulk add students");
     };
     for (s in newStudents.vals()) {
@@ -253,14 +253,14 @@ actor {
 
   // ---------- Fees Management ----------
   public shared ({ caller }) func addOrUpdateFees(feesStructure : FeesStructure) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+    if (caller.isAnonymous()) {
       Runtime.trap("Unauthorized: Only admins can manage fees");
     };
     fees.add(feesStructure.id, feesStructure);
   };
 
   public shared ({ caller }) func removeFees(id : Nat16) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+    if (caller.isAnonymous()) {
       Runtime.trap("Unauthorized: Only admins can manage fees");
     };
     fees.remove(id);
@@ -279,14 +279,14 @@ actor {
 
   // ---------- Gallery Management ----------
   public shared ({ caller }) func addOrUpdateGalleryImage(image : GalleryImage) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+    if (caller.isAnonymous()) {
       Runtime.trap("Unauthorized: Only admins can manage gallery images");
     };
     gallery.add(image.id, image);
   };
 
   public shared ({ caller }) func removeGalleryImage(id : Nat16) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+    if (caller.isAnonymous()) {
       Runtime.trap("Unauthorized: Only admins can manage gallery images");
     };
     gallery.remove(id);
@@ -305,7 +305,7 @@ actor {
 
   // ---------- Site Settings Management ----------
   public shared ({ caller }) func updateSiteSettings(newSettings : SiteSettings) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+    if (caller.isAnonymous()) {
       Runtime.trap("Unauthorized: Only admins can update site settings");
     };
     siteSettings := {
@@ -396,14 +396,14 @@ actor {
   };
 
   public query ({ caller }) func getAllApplications() : async [AdmissionApplication] {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+    if (caller.isAnonymous()) {
       Runtime.trap("Unauthorized: Only admins can view all admission applications");
     };
     applications.values().toArray();
   };
 
   public shared ({ caller }) func approveApplication(id : Nat16, note : Text) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+    if (caller.isAnonymous()) {
       Runtime.trap("Unauthorized: Only admins can approve applications");
     };
     switch (applications.get(id)) {
@@ -421,7 +421,7 @@ actor {
   };
 
   public shared ({ caller }) func rejectApplication(id : Nat16, note : Text) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+    if (caller.isAnonymous()) {
       Runtime.trap("Unauthorized: Only admins can reject applications");
     };
     switch (applications.get(id)) {
